@@ -367,7 +367,7 @@
 </div>
 
 <!-- Supabase -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.0/dist/umd/supabase.min.js"></script>
 <script src="js/db.js"></script>
 
 <script>
@@ -387,11 +387,15 @@
 
   /* ── Init ── */
   async function init() {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) { window.location.href = 'login.html'; return; }
-    currentUser = session.user;
-    await loadProfile();
-    await loadRecentDocs();
+    try {
+      const { data: { session }, error } = await supabase.auth.getSession();
+      if (error || !session) { window.location.href = 'login.html'; return; }
+      currentUser = session.user;
+      await loadProfile();
+      await loadRecentDocs();
+    } catch (e) {
+      window.location.href = 'login.html';
+    }
   }
 
   /* ── Load profile from DB ── */

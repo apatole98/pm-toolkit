@@ -237,8 +237,8 @@
 </div>
 
 
-<!-- Supabase JS SDK (CDN) -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<!-- Supabase JS SDK (CDN) — pinned to recent stable -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.0/dist/umd/supabase.min.js"></script>
 <script src="js/db.js"></script>
 
 <script>
@@ -341,7 +341,7 @@
     clearAlert('login-alert');
     clearFieldErrors(['login-email-error', 'login-password-error']);
 
-    const email = document.getElementById('login-email').value.trim();
+    const email    = document.getElementById('login-email').value.trim();
     const password = document.getElementById('login-password').value;
 
     let valid = true;
@@ -351,15 +351,17 @@
     if (!valid) return;
 
     setLoading('login-btn', true);
-
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-
-    setLoading('login-btn', false);
-
-    if (error) {
-      showAlert('login-alert', friendlyError(error.message), 'error');
-    } else {
-      window.location.href = 'dashboard.html';
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) {
+        showAlert('login-alert', friendlyError(error.message), 'error');
+      } else {
+        window.location.href = 'dashboard.html';
+      }
+    } catch (e) {
+      showAlert('login-alert', 'Connection error. Check your internet and try again.', 'error');
+    } finally {
+      setLoading('login-btn', false);
     }
   }
 
@@ -382,22 +384,24 @@
     if (!valid) return;
 
     setLoading('signup-btn', true);
-
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: { data: { full_name: name } }
-    });
-
-    setLoading('signup-btn', false);
-
-    if (error) {
-      showAlert('signup-alert', friendlyError(error.message), 'error');
-    } else if (data.user && data.user.identities && data.user.identities.length === 0) {
-      showAlert('signup-alert', 'An account with this email already exists. Please log in instead.', 'info');
-    } else {
-      showAlert('signup-alert', '✓ Account created! Check your email to confirm your address, then log in.', 'success');
-      document.getElementById('signup-btn').disabled = true;
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: { data: { full_name: name } }
+      });
+      if (error) {
+        showAlert('signup-alert', friendlyError(error.message), 'error');
+      } else if (data.user && data.user.identities && data.user.identities.length === 0) {
+        showAlert('signup-alert', 'Is email se account pehle se hai. Log in karo.', 'info');
+      } else {
+        showAlert('signup-alert', '✓ Account ban gaya! Email check karo — confirm karne ke baad log in karo.', 'success');
+        document.getElementById('signup-btn').disabled = true;
+      }
+    } catch (e) {
+      showAlert('signup-alert', 'Connection error. Check your internet and try again. (' + (e.message || e) + ')', 'error');
+    } finally {
+      setLoading('signup-btn', false);
     }
   }
 
