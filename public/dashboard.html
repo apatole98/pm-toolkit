@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard — PM Toolkit</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/dashboard.css" />
+</head>
+<body class="dash-page">
+
+<!-- ════════════════════════════════════════
+     TOP NAVBAR
+════════════════════════════════════════ -->
+<nav class="dash-nav">
+  <button class="sidebar-toggle" onclick="toggleSidebar()" aria-label="Menu">☰</button>
+
+  <a href="index.html" class="nav-logo">
+    <svg width="26" height="26" viewBox="0 0 30 30" fill="none">
+      <rect width="30" height="30" rx="8" fill="#2563eb"/>
+      <path d="M7 10h16M7 15h10M7 20h13" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/>
+    </svg>
+    PM Toolkit
+  </a>
+
+  <div class="dash-nav-right">
+    <div class="user-chip">
+      <div class="user-avatar" id="user-avatar">A</div>
+      <span id="user-name">Aarav</span>
+    </div>
+    <button class="btn-logout" onclick="handleLogout()">Log out</button>
+  </div>
+</nav>
+
+
+<!-- ════════════════════════════════════════
+     BODY
+════════════════════════════════════════ -->
+<div class="dash-body">
+
+  <!-- ── SIDEBAR ── -->
+  <aside class="dash-sidebar" id="sidebar">
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Documents</div>
+      <ul class="sidebar-nav" id="doc-nav">
+
+        <li class="active" data-doc="charter">
+          <button onclick="selectDoc('charter')">
+            <span class="sidebar-icon">📋</span>
+            Project Charter
+          </button>
+        </li>
+
+        <li data-doc="risk">
+          <button onclick="selectDoc('risk')">
+            <span class="sidebar-icon">⚠️</span>
+            Risk Register
+          </button>
+        </li>
+
+        <li data-doc="status">
+          <button onclick="selectDoc('status')">
+            <span class="sidebar-icon">📊</span>
+            Status Report
+          </button>
+        </li>
+
+        <li data-doc="escalation">
+          <button onclick="selectDoc('escalation')">
+            <span class="sidebar-icon">🚨</span>
+            Escalation Matrix
+            <span class="doc-plan-tag">Pro</span>
+          </button>
+        </li>
+
+        <li data-doc="stakeholder">
+          <button onclick="selectDoc('stakeholder')">
+            <span class="sidebar-icon">👥</span>
+            Stakeholder Register
+            <span class="doc-plan-tag">Pro</span>
+          </button>
+        </li>
+
+        <li data-doc="raid">
+          <button onclick="selectDoc('raid')">
+            <span class="sidebar-icon">🔗</span>
+            RAID Log
+            <span class="doc-plan-tag">Pro</span>
+          </button>
+        </li>
+
+      </ul>
+    </div>
+
+    <div class="sidebar-section" style="margin-top:auto; padding-top:0;">
+      <div class="sidebar-label">Account</div>
+      <ul class="sidebar-nav">
+        <li>
+          <a href="#">
+            <span class="sidebar-icon">⚙️</span>
+            Settings
+          </a>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Upgrade card (Free users only) -->
+    <div class="sidebar-upgrade" id="upgrade-card">
+      <h4>Upgrade to Pro</h4>
+      <p>Unlock all 7 document types, PDF export & unlimited generations.</p>
+      <button class="btn-upgrade" onclick="showUpgradeModal()">Upgrade — ₹999/mo</button>
+    </div>
+
+  </aside>
+
+
+  <!-- ── MAIN CONTENT ── -->
+  <main class="dash-main">
+
+    <!-- Usage counter -->
+    <div class="usage-bar-wrap">
+      <div class="usage-info">
+        <p>Free plan — <strong id="usage-left">5 documents remaining</strong> this month</p>
+        <div class="usage-track">
+          <div class="usage-fill" id="usage-fill" style="width: 0%;"></div>
+        </div>
+      </div>
+      <div class="usage-cta">
+        <button class="btn btn-primary" style="padding:8px 18px; font-size:.88rem;" onclick="showUpgradeModal()">
+          Upgrade to Pro
+        </button>
+      </div>
+    </div>
+
+
+    <!-- New document form -->
+    <div class="dash-section-title" id="form-section-title">Naya document banao</div>
+
+    <div class="doc-form-card">
+
+      <!-- Doc type tabs (horizontal quick-switch) -->
+      <div class="doc-form-header">
+        <div class="doc-type-tabs" id="doc-type-tabs">
+          <button class="doc-type-tab active" data-doc="charter"     onclick="selectDoc('charter')">📋 Charter</button>
+          <button class="doc-type-tab"         data-doc="risk"        onclick="selectDoc('risk')">⚠️ Risk Register</button>
+          <button class="doc-type-tab"         data-doc="status"      onclick="selectDoc('status')">📊 Status Report</button>
+          <button class="doc-type-tab pro-locked" data-doc="escalation" onclick="proGateClick(event)">🚨 Escalation <span class="tab-pro-pill">Pro</span></button>
+          <button class="doc-type-tab pro-locked" data-doc="stakeholder" onclick="proGateClick(event)">👥 Stakeholder <span class="tab-pro-pill">Pro</span></button>
+          <button class="doc-type-tab pro-locked" data-doc="raid"       onclick="proGateClick(event)">🔗 RAID Log <span class="tab-pro-pill">Pro</span></button>
+        </div>
+      </div>
+
+      <!-- ── Free doc forms ── -->
+
+      <!-- Project Charter -->
+      <div class="doc-form-body" id="form-charter">
+        <div class="form-grid">
+          <div class="field field-full">
+            <label for="c-name">Project name</label>
+            <input type="text" id="c-name" placeholder="e.g. Customer Portal Redesign" />
+          </div>
+          <div class="field field-full">
+            <label for="c-objective">Project objective</label>
+            <textarea id="c-objective" placeholder="What is this project trying to achieve? (1–2 sentences)"></textarea>
+          </div>
+          <div class="field">
+            <label for="c-sponsor">Project sponsor</label>
+            <input type="text" id="c-sponsor" placeholder="e.g. Priya Sharma (VP Product)" />
+          </div>
+          <div class="field">
+            <label for="c-pm">Project manager</label>
+            <input type="text" id="c-pm" placeholder="e.g. Rahul Mehta" />
+          </div>
+          <div class="field">
+            <label for="c-start">Start date</label>
+            <input type="date" id="c-start" />
+          </div>
+          <div class="field">
+            <label for="c-end">Target end date</label>
+            <input type="date" id="c-end" />
+          </div>
+          <div class="field field-full">
+            <label for="c-scope">In-scope items</label>
+            <textarea id="c-scope" placeholder="List what is included in this project's scope." style="min-height:72px;"></textarea>
+          </div>
+          <div class="field field-full">
+            <label for="c-stakeholders">Key stakeholders</label>
+            <input type="text" id="c-stakeholders" placeholder="e.g. Design team, Engineering, Finance, Operations" />
+          </div>
+          <div class="field field-full">
+            <label for="c-budget">Estimated budget (optional)</label>
+            <input type="text" id="c-budget" placeholder="e.g. ₹15,00,000" />
+          </div>
+        </div>
+        <button class="btn-generate" onclick="handleGenerate('Project Charter')">
+          ✦ Generate Project Charter
+        </button>
+      </div>
+
+      <!-- Risk Register -->
+      <div class="doc-form-body" id="form-risk" style="display:none;">
+        <div class="form-grid">
+          <div class="field field-full">
+            <label for="r-project">Project name</label>
+            <input type="text" id="r-project" placeholder="e.g. Mobile App Launch" />
+          </div>
+          <div class="field field-full">
+            <label for="r-desc">Project brief</label>
+            <textarea id="r-desc" placeholder="Briefly describe what the project does and its main risks area."></textarea>
+          </div>
+          <div class="field">
+            <label for="r-phase">Current phase</label>
+            <select id="r-phase">
+              <option value="">Select phase</option>
+              <option>Initiation</option>
+              <option>Planning</option>
+              <option>Execution</option>
+              <option>Monitoring</option>
+              <option>Closure</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="r-industry">Industry / Domain</label>
+            <input type="text" id="r-industry" placeholder="e.g. Fintech, Healthcare, E-commerce" />
+          </div>
+          <div class="field field-full">
+            <label for="r-known">Known risk areas (optional)</label>
+            <textarea id="r-known" placeholder="List any risks you already know about, one per line." style="min-height:72px;"></textarea>
+          </div>
+        </div>
+        <button class="btn-generate" onclick="handleGenerate('Risk Register')">
+          ✦ Generate Risk Register
+        </button>
+      </div>
+
+      <!-- Status Report -->
+      <div class="doc-form-body" id="form-status" style="display:none;">
+        <div class="form-grid">
+          <div class="field field-full">
+            <label for="s-project">Project name</label>
+            <input type="text" id="s-project" placeholder="e.g. ERP Migration" />
+          </div>
+          <div class="field">
+            <label for="s-period">Reporting period</label>
+            <input type="text" id="s-period" placeholder="e.g. Week of 20 May 2026" />
+          </div>
+          <div class="field">
+            <label for="s-health">Overall project health</label>
+            <select id="s-health">
+              <option value="">Select status</option>
+              <option>🟢 On Track</option>
+              <option>🟡 At Risk</option>
+              <option>🔴 Off Track</option>
+            </select>
+          </div>
+          <div class="field field-full">
+            <label for="s-done">Completed this period</label>
+            <textarea id="s-done" placeholder="What was accomplished this week/month?"></textarea>
+          </div>
+          <div class="field field-full">
+            <label for="s-next">Planned for next period</label>
+            <textarea id="s-next" placeholder="What will the team work on next?"></textarea>
+          </div>
+          <div class="field field-full">
+            <label for="s-blockers">Blockers / Issues (optional)</label>
+            <textarea id="s-blockers" placeholder="Any blockers or escalations needed?" style="min-height:64px;"></textarea>
+          </div>
+        </div>
+        <button class="btn-generate" onclick="handleGenerate('Status Report')">
+          ✦ Generate Status Report
+        </button>
+      </div>
+
+      <!-- Pro locked state (escalation / stakeholder / raid) -->
+      <div class="pro-locked-overlay" id="form-pro-locked">
+        <div class="pro-locked-icon">🔒</div>
+        <h3>This document requires Pro</h3>
+        <p>Upgrade to unlock Escalation Matrix, Stakeholder Register, RAID Log, PDF export, and unlimited generations.</p>
+        <button class="btn btn-primary" onclick="showUpgradeModal()">Upgrade to Pro — ₹999/mo</button>
+      </div>
+
+    </div>
+
+
+    <!-- Recent documents -->
+    <div class="recent-docs-card">
+      <div class="recent-docs-header">
+        <h3>Recent documents</h3>
+        <span style="font-size:.82rem; color:var(--muted);" id="recent-count">0 documents</span>
+      </div>
+
+      <!-- Empty state (shown when no docs) -->
+      <div class="recent-empty" id="recent-empty">
+        <span>📄</span>
+        No documents yet — generate your first one above.
+      </div>
+
+      <!-- Table (hidden until docs exist) -->
+      <table class="docs-table" id="recent-table" style="display:none;">
+        <thead>
+          <tr>
+            <th>Document</th>
+            <th>Project</th>
+            <th>Created</th>
+            <th>Status</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="recent-tbody"></tbody>
+      </table>
+    </div>
+
+  </main>
+</div>
+
+
+<!-- ════════════════════════════════════════
+     UPGRADE MODAL
+════════════════════════════════════════ -->
+<div id="upgrade-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:200; align-items:center; justify-content:center;">
+  <div style="background:#fff; border-radius:18px; padding:40px; width:90%; max-width:420px; box-shadow:0 24px 64px rgba(0,0,0,.2); text-align:center;">
+    <div style="font-size:2.2rem; margin-bottom:12px;">🚀</div>
+    <h2 style="font-size:1.4rem; font-weight:800; margin-bottom:8px;">Upgrade to Pro</h2>
+    <p style="font-size:.93rem; color:var(--muted); margin-bottom:24px; line-height:1.6;">Unlock all 7 document types, PDF export, unlimited generations, and full document history.</p>
+
+    <div style="background:var(--bg-soft); border:1px solid var(--border); border-radius:12px; padding:20px; margin-bottom:24px; text-align:left;">
+      <div style="font-size:1.8rem; font-weight:900; color:var(--text); margin-bottom:2px;">₹999 <span style="font-size:1rem; font-weight:500; color:var(--muted);">/ month</span></div>
+      <div style="font-size:.82rem; color:var(--muted);">Cancel anytime. No lock-in.</div>
+    </div>
+
+    <ul style="list-style:none; text-align:left; margin-bottom:24px; display:flex; flex-direction:column; gap:10px;">
+      <li style="display:flex; align-items:center; gap:8px; font-size:.9rem;">
+        <span style="color:#16a34a; font-weight:700;">✓</span> All 7 document types
+      </li>
+      <li style="display:flex; align-items:center; gap:8px; font-size:.9rem;">
+        <span style="color:#16a34a; font-weight:700;">✓</span> Unlimited monthly generations
+      </li>
+      <li style="display:flex; align-items:center; gap:8px; font-size:.9rem;">
+        <span style="color:#16a34a; font-weight:700;">✓</span> PDF export (clean, shareable layout)
+      </li>
+      <li style="display:flex; align-items:center; gap:8px; font-size:.9rem;">
+        <span style="color:#16a34a; font-weight:700;">✓</span> Full document history
+      </li>
+      <li style="display:flex; align-items:center; gap:8px; font-size:.9rem;">
+        <span style="color:#16a34a; font-weight:700;">✓</span> Priority AI generation
+      </li>
+    </ul>
+
+    <button class="btn btn-primary" style="width:100%; padding:14px; font-size:1rem;" onclick="handleUpgrade()">
+      Pay with Razorpay →
+    </button>
+    <button onclick="closeUpgradeModal()" style="margin-top:12px; background:none; border:none; font-size:.88rem; color:var(--muted); cursor:pointer; font-family:var(--font);">
+      Maybe later
+    </button>
+  </div>
+</div>
+
+<!-- Generate success toast -->
+<div id="gen-toast" style="display:none; position:fixed; bottom:28px; right:28px; background:#111827; color:#fff; padding:14px 22px; border-radius:12px; font-size:.9rem; font-weight:600; z-index:300; box-shadow:0 8px 24px rgba(0,0,0,.25);">
+  ✦ Document generated! (AI integration coming soon)
+</div>
+
+
+<script>
+  /* ═══════════════════════════════
+     DUMMY DATA
+  ═══════════════════════════════ */
+  const DUMMY_USER = { name: 'Aarav', email: 'aarav@example.com', plan: 'free', used: 0, limit: 5 };
+
+  const DOC_TYPES = {
+    charter:     { label: 'Project Charter',       icon: '📋', pro: false },
+    risk:        { label: 'Risk Register',          icon: '⚠️', pro: false },
+    status:      { label: 'Status Report',          icon: '📊', pro: false },
+    escalation:  { label: 'Escalation Matrix',      icon: '🚨', pro: true  },
+    stakeholder: { label: 'Stakeholder Register',   icon: '👥', pro: true  },
+    raid:        { label: 'RAID Log',               icon: '🔗', pro: true  },
+  };
+
+  /* recent docs — starts empty, grows as user "generates" */
+  let recentDocs = [];
+  let currentDoc = 'charter';
+
+  /* ═══════════════════════════════
+     INIT
+  ═══════════════════════════════ */
+  (function init() {
+    /* Set user name initial */
+    const initial = DUMMY_USER.name.charAt(0).toUpperCase();
+    document.getElementById('user-avatar').textContent = initial;
+    document.getElementById('user-name').textContent   = DUMMY_USER.name;
+
+    renderUsage();
+    renderRecentDocs();
+  })();
+
+  /* ═══════════════════════════════
+     USAGE BAR
+  ═══════════════════════════════ */
+  function renderUsage() {
+    const used  = DUMMY_USER.used;
+    const limit = DUMMY_USER.limit;
+    const left  = limit - used;
+    const pct   = (used / limit) * 100;
+
+    document.getElementById('usage-left').textContent = left + ' document' + (left !== 1 ? 's' : '') + ' remaining';
+
+    const fill = document.getElementById('usage-fill');
+    fill.style.width = pct + '%';
+    fill.className   = 'usage-fill' + (pct >= 80 ? ' danger' : pct >= 60 ? ' warn' : '');
+  }
+
+  /* ═══════════════════════════════
+     SIDEBAR + TAB SELECTION
+  ═══════════════════════════════ */
+  function selectDoc(docKey) {
+    currentDoc = docKey;
+    const info = DOC_TYPES[docKey];
+
+    /* sidebar active state */
+    document.querySelectorAll('#doc-nav li').forEach(li => {
+      li.classList.toggle('active', li.dataset.doc === docKey);
+    });
+
+    /* tab active state */
+    document.querySelectorAll('.doc-type-tab').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.doc === docKey);
+    });
+
+    /* hide all form panels */
+    ['charter','risk','status'].forEach(k => {
+      document.getElementById('form-' + k).style.display = 'none';
+    });
+    document.getElementById('form-pro-locked').classList.remove('show');
+
+    if (info.pro) {
+      document.getElementById('form-pro-locked').classList.add('show');
+    } else {
+      document.getElementById('form-' + docKey).style.display = 'block';
+    }
+
+    /* close mobile sidebar */
+    document.getElementById('sidebar').classList.remove('open');
+  }
+
+  function proGateClick(e) {
+    e.stopPropagation();
+    showUpgradeModal();
+  }
+
+  /* ═══════════════════════════════
+     GENERATE (dummy)
+  ═══════════════════════════════ */
+  function handleGenerate(label) {
+    if (DUMMY_USER.used >= DUMMY_USER.limit) {
+      showUpgradeModal();
+      return;
+    }
+
+    DUMMY_USER.used++;
+    renderUsage();
+
+    /* add dummy row to recent docs */
+    recentDocs.unshift({
+      id:      Date.now(),
+      type:    label,
+      icon:    Object.values(DOC_TYPES).find(d => d.label === label)?.icon || '📄',
+      project: getProjectName() || 'Untitled project',
+      date:    new Date().toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' }),
+      status:  'done',
+    });
+
+    renderRecentDocs();
+    showToast();
+  }
+
+  function getProjectName() {
+    const fields = {
+      charter: 'c-name',
+      risk:    'r-project',
+      status:  's-project',
+    };
+    const el = document.getElementById(fields[currentDoc]);
+    return el ? el.value.trim() : '';
+  }
+
+  /* ═══════════════════════════════
+     RECENT DOCS TABLE
+  ═══════════════════════════════ */
+  function renderRecentDocs() {
+    const empty = document.getElementById('recent-empty');
+    const table = document.getElementById('recent-table');
+    const tbody = document.getElementById('recent-tbody');
+    const count = document.getElementById('recent-count');
+
+    count.textContent = recentDocs.length + ' document' + (recentDocs.length !== 1 ? 's' : '');
+
+    if (recentDocs.length === 0) {
+      empty.style.display = 'block';
+      table.style.display = 'none';
+      return;
+    }
+
+    empty.style.display = 'none';
+    table.style.display = 'table';
+
+    tbody.innerHTML = recentDocs.map(doc => `
+      <tr>
+        <td>
+          <div class="doc-row-type">
+            <span class="doc-row-icon">${doc.icon}</span>
+            ${doc.type}
+          </div>
+        </td>
+        <td>${doc.project}</td>
+        <td>${doc.date}</td>
+        <td><span class="doc-status ${doc.status}">${doc.status === 'done' ? 'Generated' : 'Draft'}</span></td>
+        <td>
+          <div class="doc-actions">
+            <button class="btn-icon" onclick="alert('Edit functionality coming in STEP 5!')">Edit</button>
+            <button class="btn-icon" onclick="alert('Download coming in STEP 5!')">Download</button>
+          </div>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  /* ═══════════════════════════════
+     UPGRADE MODAL
+  ═══════════════════════════════ */
+  function showUpgradeModal() {
+    document.getElementById('upgrade-modal').style.display = 'flex';
+  }
+
+  function closeUpgradeModal() {
+    document.getElementById('upgrade-modal').style.display = 'none';
+  }
+
+  function handleUpgrade() {
+    alert('Razorpay integration aayega STEP 6 mein!');
+    closeUpgradeModal();
+  }
+
+  document.getElementById('upgrade-modal').addEventListener('click', function(e) {
+    if (e.target === this) closeUpgradeModal();
+  });
+
+  /* ═══════════════════════════════
+     TOAST
+  ═══════════════════════════════ */
+  function showToast() {
+    const toast = document.getElementById('gen-toast');
+    toast.style.display = 'block';
+    setTimeout(() => { toast.style.display = 'none'; }, 3000);
+  }
+
+  /* ═══════════════════════════════
+     MOBILE SIDEBAR
+  ═══════════════════════════════ */
+  function toggleSidebar() {
+    document.getElementById('sidebar').classList.toggle('open');
+  }
+
+  /* ═══════════════════════════════
+     LOGOUT
+  ═══════════════════════════════ */
+  function handleLogout() {
+    window.location.href = 'login.html';
+  }
+</script>
+
+</body>
+</html>
