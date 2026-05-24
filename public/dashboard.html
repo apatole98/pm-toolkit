@@ -529,7 +529,7 @@
 
   function proGateClick(e) { e.stopPropagation(); showUpgradeModal(); }
 
-  /* ── Generate → call AI → save to Supabase ── */
+  /* ── Generate → stream AI → save to Supabase ── */
   async function handleGenerate(label) {
     const isPro = userProfile?.tier === 'pro';
     const used  = userProfile?.docs_used_this_month || 0;
@@ -540,44 +540,56 @@
     if (btn) { btn.disabled = true; btn.textContent = '⏳ Generating…'; }
 
     try {
-      /* get current session token to send to serverless function */
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) { window.location.href = 'login.html'; return; }
 
       const inputs      = getFormInputs();
       const projectName = getProjectName() || 'Untitled';
 
-      /* call Netlify serverless function */
       const res = await fetch('/api/generate-charter', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ inputs, token: session.access_token }),
       });
 
-      const result = await res.json();
-
-      if (!res.ok || result.error) {
-        alert('Generation failed: ' + (result.error || 'Unknown error'));
+      /* non-200 responses are JSON errors */
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: 'Server error' }));
+        alert('Generation failed: ' + (err.error || 'Unknown error'));
         return;
       }
 
-      const generatedContent = result.content;
+      /* open viewer immediately — content streams in */
+      let content = '';
+      openViewer(label, '');
+      const contentEl = document.getElementById('viewer-content');
+      contentEl.textContent = '✦ Generating your document…';
 
-      /* save to Supabase documents table */
+      const reader  = res.body.getReader();
+      const decoder = new TextDecoder();
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        content += decoder.decode(value, { stream: true });
+        contentEl.textContent = content;
+      }
+
+      /* save completed document to Supabase */
       const { error: saveErr } = await supabase.from('documents').insert({
         user_id:      currentUser.id,
         type:         label,
         project_name: projectName,
         inputs:       inputs,
-        content:      generatedContent,
+        content:      content,
       });
 
       if (saveErr) {
-        alert('Save failed: ' + saveErr.message);
+        alert('Generated but save failed: ' + saveErr.message);
         return;
       }
 
-      /* increment usage counter */
+      /* increment usage */
       const newUsed = used + 1;
       await supabase.from('profiles')
         .update({ docs_used_this_month: newUsed })
@@ -587,9 +599,6 @@
 
       await loadRecentDocs();
       showToast();
-
-      /* show generated document in viewer */
-      openViewer(label, generatedContent);
 
     } catch (e) {
       alert('Error: ' + e.message);
