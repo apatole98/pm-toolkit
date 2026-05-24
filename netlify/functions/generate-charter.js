@@ -22,8 +22,8 @@ exports.handler = async function (event) {
     }
 
     /* ── Verify user is logged in via Supabase ── */
-    const supabaseUrl  = process.env.SUPABASE_URL;
-    const supabaseAnon = process.env.SUPABASE_ANON_KEY;
+    const supabaseUrl  = 'https://yseddxycyfmnjmbmnsip.supabase.co';
+    const supabaseAnon = 'sb_publishable_dhQwFgU9-gRY57rksdUfpw_V0fsRv2o';
 
     const userRes = await fetch(`${supabaseUrl}/auth/v1/user`, {
       headers: {
