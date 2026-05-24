@@ -518,6 +518,9 @@
     raid:        { label: 'RAID Log',               icon: '🔗', pro: true  },
   };
 
+  let docMap = {};      /* id → doc object, used by View button */
+  let lastGeneratedId = null; /* highlight newly generated doc */
+
   let currentUser = null;
   let userProfile  = null;
   let currentDoc   = 'charter';
@@ -681,18 +684,24 @@
       }
 
       /* save completed document to Supabase */
-      const { error: saveErr } = await supabase.from('documents').insert({
-        user_id:      currentUser.id,
-        type:         label,
-        project_name: projectName,
-        inputs:       inputs,
-        content:      content,
-      });
+      const { data: saved, error: saveErr } = await supabase
+        .from('documents')
+        .insert({
+          user_id:      currentUser.id,
+          type:         label,
+          project_name: projectName,
+          inputs:       inputs,
+          content:      content,
+        })
+        .select('id')
+        .single();
 
       if (saveErr) {
         alert('Generated but save failed: ' + saveErr.message);
         return;
       }
+
+      lastGeneratedId = saved?.id || null;
 
       /* increment usage */
       const newUsed = used + 1;
@@ -710,6 +719,12 @@
     } finally {
       if (btn) { btn.disabled = false; btn.textContent = '✦ Generate ' + label; }
     }
+  }
+
+  /* ── View doc from recent table (safe — no inline content) ── */
+  function viewDoc(id) {
+    const doc = docMap[id];
+    if (doc && doc.content) openViewer(doc.type, doc.content);
   }
 
   /* ── Document viewer ── */
@@ -774,6 +789,10 @@
     const tbody = document.getElementById('recent-tbody');
     const count = document.getElementById('recent-count');
 
+    /* store docs in map so View button can access content safely by ID */
+    docMap = {};
+    docs.forEach(doc => { docMap[doc.id] = doc; });
+
     count.textContent = docs.length + ' document' + (docs.length !== 1 ? 's' : '');
 
     if (docs.length === 0) {
@@ -792,12 +811,12 @@
       const icon    = iconMap[doc.type] || '📄';
       const date    = new Date(doc.created_at).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' });
       const status  = doc.content ? 'done' : 'draft';
-      const safe    = doc.content ? encodeURIComponent(doc.content) : '';
+      const isNew   = doc.id === lastGeneratedId;
       const viewBtn = doc.content
-        ? `<button class="btn-icon" onclick="openViewer('${doc.type}', decodeURIComponent('${safe}'))">View</button>`
+        ? `<button class="btn-icon" onclick="viewDoc('${doc.id}')">View</button>`
         : '';
       return `
-        <tr>
+        <tr${isNew ? ' style="background:#eff6ff;"' : ''}>
           <td><div class="doc-row-type"><span class="doc-row-icon">${icon}</span>${doc.type}</div></td>
           <td>${doc.project_name || '—'}</td>
           <td>${date}</td>
