@@ -239,17 +239,9 @@
 
 <!-- Supabase JS SDK (CDN) -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="js/db.js"></script>
 
 <script>
-  /* ── Supabase config ──────────────────────────────────────────
-     Replace these with your actual values from supabase.com
-     Project Settings → API → Project URL & anon public key
-  ──────────────────────────────────────────────────────────── */
-  const SUPABASE_URL  = 'YOUR_SUPABASE_URL';
-  const SUPABASE_ANON = 'YOUR_SUPABASE_ANON_KEY';
-
-  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
-
   /* ── Tab switching ── */
   function switchTab(tab) {
     document.getElementById('form-login').classList.toggle('active', tab === 'login');

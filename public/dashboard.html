@@ -363,16 +363,15 @@
 
 <!-- Generate success toast -->
 <div id="gen-toast" style="display:none; position:fixed; bottom:28px; right:28px; background:#111827; color:#fff; padding:14px 22px; border-radius:12px; font-size:.9rem; font-weight:600; z-index:300; box-shadow:0 8px 24px rgba(0,0,0,.25);">
-  ✦ Document generated! (AI integration coming soon)
+  ✦ Document saved! AI generation aayega next step mein.
 </div>
 
+<!-- Supabase -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="js/db.js"></script>
 
 <script>
-  /* ═══════════════════════════════
-     DUMMY DATA
-  ═══════════════════════════════ */
-  const DUMMY_USER = { name: 'Aarav', email: 'aarav@example.com', plan: 'free', used: 0, limit: 5 };
-
+  const FREE_LIMIT = 5;
   const DOC_TYPES = {
     charter:     { label: 'Project Charter',       icon: '📋', pro: false },
     risk:        { label: 'Risk Register',          icon: '⚠️', pro: false },
@@ -382,125 +381,193 @@
     raid:        { label: 'RAID Log',               icon: '🔗', pro: true  },
   };
 
-  /* recent docs — starts empty, grows as user "generates" */
-  let recentDocs = [];
-  let currentDoc = 'charter';
+  let currentUser = null;
+  let userProfile  = null;
+  let currentDoc   = 'charter';
 
-  /* ═══════════════════════════════
-     INIT
-  ═══════════════════════════════ */
-  (function init() {
-    /* Set user name initial */
-    const initial = DUMMY_USER.name.charAt(0).toUpperCase();
-    document.getElementById('user-avatar').textContent = initial;
-    document.getElementById('user-name').textContent   = DUMMY_USER.name;
+  /* ── Init ── */
+  async function init() {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) { window.location.href = 'login.html'; return; }
+    currentUser = session.user;
+    await loadProfile();
+    await loadRecentDocs();
+  }
+
+  /* ── Load profile from DB ── */
+  async function loadProfile() {
+    let { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', currentUser.id)
+      .single();
+
+    if (error || !data) {
+      const name = currentUser.user_metadata?.full_name || currentUser.email.split('@')[0];
+      const { data: created } = await supabase
+        .from('profiles')
+        .upsert({ id: currentUser.id, full_name: name })
+        .select().single();
+      data = created;
+    }
+
+    if (data) {
+      /* monthly usage reset check */
+      const resetAt = new Date(data.usage_reset_at);
+      const now     = new Date();
+      const isNewMonth = resetAt.getFullYear() < now.getFullYear() ||
+                         resetAt.getMonth()    < now.getMonth();
+      if (isNewMonth) {
+        const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+        await supabase.from('profiles')
+          .update({ docs_used_this_month: 0, usage_reset_at: firstOfMonth })
+          .eq('id', currentUser.id);
+        data.docs_used_this_month = 0;
+      }
+    }
+
+    userProfile = data || { tier: 'free', docs_used_this_month: 0 };
+
+    const displayName = userProfile.full_name || currentUser.email.split('@')[0];
+    document.getElementById('user-avatar').textContent = displayName.charAt(0).toUpperCase();
+    document.getElementById('user-name').textContent   = displayName.split(' ')[0];
+
+    if (userProfile.tier === 'pro') {
+      document.getElementById('upgrade-card').style.display = 'none';
+      document.querySelector('.usage-cta').style.display    = 'none';
+      unlockProTabs();
+    }
 
     renderUsage();
-    renderRecentDocs();
-  })();
+  }
 
-  /* ═══════════════════════════════
-     USAGE BAR
-  ═══════════════════════════════ */
+  function unlockProTabs() {
+    document.querySelectorAll('.doc-type-tab.pro-locked').forEach(btn => {
+      btn.classList.remove('pro-locked');
+      btn.onclick = () => selectDoc(btn.dataset.doc);
+    });
+    document.querySelectorAll('#doc-nav .doc-plan-tag').forEach(tag => tag.remove());
+  }
+
+  /* ── Usage bar ── */
   function renderUsage() {
-    const used  = DUMMY_USER.used;
-    const limit = DUMMY_USER.limit;
-    const left  = limit - used;
-    const pct   = (used / limit) * 100;
+    if (!userProfile) return;
+    const used  = userProfile.docs_used_this_month || 0;
+    const isPro = userProfile.tier === 'pro';
+    const left  = isPro ? '∞' : Math.max(0, FREE_LIMIT - used);
+    const pct   = isPro ? 10 : Math.min(100, (used / FREE_LIMIT) * 100);
 
-    document.getElementById('usage-left').textContent = left + ' document' + (left !== 1 ? 's' : '') + ' remaining';
+    document.getElementById('usage-left').textContent = isPro
+      ? 'Pro plan — unlimited generations'
+      : left + ' document' + (left !== 1 ? 's' : '') + ' remaining this month';
 
     const fill = document.getElementById('usage-fill');
     fill.style.width = pct + '%';
     fill.className   = 'usage-fill' + (pct >= 80 ? ' danger' : pct >= 60 ? ' warn' : '');
   }
 
-  /* ═══════════════════════════════
-     SIDEBAR + TAB SELECTION
-  ═══════════════════════════════ */
+  /* ── Sidebar + Tab selection ── */
   function selectDoc(docKey) {
     currentDoc = docKey;
     const info = DOC_TYPES[docKey];
 
-    /* sidebar active state */
-    document.querySelectorAll('#doc-nav li').forEach(li => {
-      li.classList.toggle('active', li.dataset.doc === docKey);
-    });
+    document.querySelectorAll('#doc-nav li').forEach(li =>
+      li.classList.toggle('active', li.dataset.doc === docKey));
+    document.querySelectorAll('.doc-type-tab').forEach(btn =>
+      btn.classList.toggle('active', btn.dataset.doc === docKey));
 
-    /* tab active state */
-    document.querySelectorAll('.doc-type-tab').forEach(btn => {
-      btn.classList.toggle('active', btn.dataset.doc === docKey);
-    });
-
-    /* hide all form panels */
-    ['charter','risk','status'].forEach(k => {
-      document.getElementById('form-' + k).style.display = 'none';
-    });
+    ['charter','risk','status'].forEach(k =>
+      document.getElementById('form-' + k).style.display = 'none');
     document.getElementById('form-pro-locked').classList.remove('show');
 
-    if (info.pro) {
+    if (info.pro && userProfile?.tier !== 'pro') {
       document.getElementById('form-pro-locked').classList.add('show');
-    } else {
+    } else if (!info.pro) {
       document.getElementById('form-' + docKey).style.display = 'block';
+    } else {
+      document.getElementById('form-pro-locked').innerHTML = `
+        <div class="pro-locked-icon">${info.icon}</div>
+        <h3>${info.label}</h3>
+        <p style="color:var(--muted);">AI generation for this document type is coming in the next step. Your Pro access is active!</p>`;
+      document.getElementById('form-pro-locked').classList.add('show');
     }
 
-    /* close mobile sidebar */
     document.getElementById('sidebar').classList.remove('open');
   }
 
-  function proGateClick(e) {
-    e.stopPropagation();
-    showUpgradeModal();
-  }
+  function proGateClick(e) { e.stopPropagation(); showUpgradeModal(); }
 
-  /* ═══════════════════════════════
-     GENERATE (dummy)
-  ═══════════════════════════════ */
-  function handleGenerate(label) {
-    if (DUMMY_USER.used >= DUMMY_USER.limit) {
-      showUpgradeModal();
+  /* ── Generate → save to Supabase ── */
+  async function handleGenerate(label) {
+    const isPro = userProfile?.tier === 'pro';
+    const used  = userProfile?.docs_used_this_month || 0;
+
+    if (!isPro && used >= FREE_LIMIT) { showUpgradeModal(); return; }
+
+    const btn = document.querySelector('#form-' + currentDoc + ' .btn-generate');
+    if (btn) { btn.disabled = true; btn.textContent = 'Saving…'; }
+
+    const { error } = await supabase.from('documents').insert({
+      user_id:      currentUser.id,
+      type:         label,
+      project_name: getProjectName() || 'Untitled',
+      inputs:       getFormInputs(),
+      content:      '',
+    });
+
+    if (error) {
+      alert('Error: ' + error.message);
+      if (btn) { btn.disabled = false; btn.textContent = '✦ Generate ' + label; }
       return;
     }
 
-    DUMMY_USER.used++;
+    /* increment usage */
+    const newUsed = used + 1;
+    await supabase.from('profiles')
+      .update({ docs_used_this_month: newUsed })
+      .eq('id', currentUser.id);
+    userProfile.docs_used_this_month = newUsed;
     renderUsage();
 
-    /* add dummy row to recent docs */
-    recentDocs.unshift({
-      id:      Date.now(),
-      type:    label,
-      icon:    Object.values(DOC_TYPES).find(d => d.label === label)?.icon || '📄',
-      project: getProjectName() || 'Untitled project',
-      date:    new Date().toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' }),
-      status:  'done',
-    });
-
-    renderRecentDocs();
+    if (btn) { btn.disabled = false; btn.textContent = '✦ Generate ' + label; }
+    await loadRecentDocs();
     showToast();
   }
 
   function getProjectName() {
-    const fields = {
-      charter: 'c-name',
-      risk:    'r-project',
-      status:  's-project',
-    };
-    const el = document.getElementById(fields[currentDoc]);
+    const map = { charter: 'c-name', risk: 'r-project', status: 's-project' };
+    const el  = document.getElementById(map[currentDoc]);
     return el ? el.value.trim() : '';
   }
 
-  /* ═══════════════════════════════
-     RECENT DOCS TABLE
-  ═══════════════════════════════ */
-  function renderRecentDocs() {
+  function getFormInputs() {
+    const inputs = {};
+    const form   = document.getElementById('form-' + currentDoc);
+    if (!form) return inputs;
+    form.querySelectorAll('input, textarea, select').forEach(el => {
+      if (el.id) inputs[el.id] = el.value;
+    });
+    return inputs;
+  }
+
+  /* ── Recent docs from DB ── */
+  async function loadRecentDocs() {
+    const { data } = await supabase
+      .from('documents')
+      .select('id, type, project_name, created_at, content')
+      .eq('user_id', currentUser.id)
+      .order('created_at', { ascending: false })
+      .limit(10);
+
+    const docs  = data || [];
     const empty = document.getElementById('recent-empty');
     const table = document.getElementById('recent-table');
     const tbody = document.getElementById('recent-tbody');
     const count = document.getElementById('recent-count');
 
-    count.textContent = recentDocs.length + ' document' + (recentDocs.length !== 1 ? 's' : '');
+    count.textContent = docs.length + ' document' + (docs.length !== 1 ? 's' : '');
 
-    if (recentDocs.length === 0) {
+    if (docs.length === 0) {
       empty.style.display = 'block';
       table.style.display = 'none';
       return;
@@ -509,69 +576,61 @@
     empty.style.display = 'none';
     table.style.display = 'table';
 
-    tbody.innerHTML = recentDocs.map(doc => `
-      <tr>
-        <td>
-          <div class="doc-row-type">
-            <span class="doc-row-icon">${doc.icon}</span>
-            ${doc.type}
-          </div>
-        </td>
-        <td>${doc.project}</td>
-        <td>${doc.date}</td>
-        <td><span class="doc-status ${doc.status}">${doc.status === 'done' ? 'Generated' : 'Draft'}</span></td>
-        <td>
-          <div class="doc-actions">
-            <button class="btn-icon" onclick="alert('Edit functionality coming in STEP 5!')">Edit</button>
-            <button class="btn-icon" onclick="alert('Download coming in STEP 5!')">Download</button>
-          </div>
-        </td>
-      </tr>
-    `).join('');
+    const iconMap = {};
+    Object.values(DOC_TYPES).forEach(d => { iconMap[d.label] = d.icon; });
+
+    tbody.innerHTML = docs.map(doc => {
+      const icon   = iconMap[doc.type] || '📄';
+      const date   = new Date(doc.created_at).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' });
+      const status = doc.content ? 'done' : 'draft';
+      return `
+        <tr>
+          <td><div class="doc-row-type"><span class="doc-row-icon">${icon}</span>${doc.type}</div></td>
+          <td>${doc.project_name || '—'}</td>
+          <td>${date}</td>
+          <td><span class="doc-status ${status}">${status === 'done' ? 'Generated' : 'Pending AI'}</span></td>
+          <td>
+            <div class="doc-actions">
+              <button class="btn-icon" onclick="alert('Edit aayega next step mein!')">Edit</button>
+              <button class="btn-icon" onclick="deleteDoc('${doc.id}')">Delete</button>
+            </div>
+          </td>
+        </tr>`;
+    }).join('');
   }
 
-  /* ═══════════════════════════════
-     UPGRADE MODAL
-  ═══════════════════════════════ */
-  function showUpgradeModal() {
-    document.getElementById('upgrade-modal').style.display = 'flex';
+  async function deleteDoc(id) {
+    if (!confirm('Is document ko delete karein?')) return;
+    await supabase.from('documents').delete().eq('id', id);
+    await loadRecentDocs();
   }
 
-  function closeUpgradeModal() {
-    document.getElementById('upgrade-modal').style.display = 'none';
-  }
-
-  function handleUpgrade() {
-    alert('Razorpay integration aayega STEP 6 mein!');
-    closeUpgradeModal();
-  }
-
+  /* ── Upgrade modal ── */
+  function showUpgradeModal() { document.getElementById('upgrade-modal').style.display = 'flex'; }
+  function closeUpgradeModal() { document.getElementById('upgrade-modal').style.display = 'none'; }
+  function handleUpgrade() { alert('Razorpay integration aayega next step mein!'); closeUpgradeModal(); }
   document.getElementById('upgrade-modal').addEventListener('click', function(e) {
     if (e.target === this) closeUpgradeModal();
   });
 
-  /* ═══════════════════════════════
-     TOAST
-  ═══════════════════════════════ */
+  /* ── Toast ── */
   function showToast() {
-    const toast = document.getElementById('gen-toast');
-    toast.style.display = 'block';
-    setTimeout(() => { toast.style.display = 'none'; }, 3000);
+    const t = document.getElementById('gen-toast');
+    t.style.display = 'block';
+    setTimeout(() => { t.style.display = 'none'; }, 3000);
   }
 
-  /* ═══════════════════════════════
-     MOBILE SIDEBAR
-  ═══════════════════════════════ */
-  function toggleSidebar() {
-    document.getElementById('sidebar').classList.toggle('open');
-  }
+  /* ── Mobile sidebar ── */
+  function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
 
-  /* ═══════════════════════════════
-     LOGOUT
-  ═══════════════════════════════ */
-  function handleLogout() {
+  /* ── Logout ── */
+  async function handleLogout() {
+    await supabase.auth.signOut();
     window.location.href = 'login.html';
   }
+
+  /* ── Start ── */
+  init();
 </script>
 
 </body>
