@@ -277,12 +277,121 @@
         </button>
       </div>
 
-      <!-- Pro locked state (escalation / stakeholder / raid) -->
+      <!-- Pro locked state (free users only) -->
       <div class="pro-locked-overlay" id="form-pro-locked">
         <div class="pro-locked-icon">🔒</div>
         <h3>This document requires Pro</h3>
         <p>Upgrade to unlock Escalation Matrix, Stakeholder Register, RAID Log, PDF export, and unlimited generations.</p>
         <button class="btn btn-primary" onclick="showUpgradeModal()">Upgrade to Pro — ₹999/mo</button>
+      </div>
+
+      <!-- Escalation Matrix -->
+      <div class="doc-form-body" id="form-escalation" style="display:none;">
+        <div class="form-grid">
+          <div class="field field-full">
+            <label for="e-project">Project name</label>
+            <input type="text" id="e-project" placeholder="e.g. ERP Migration" />
+          </div>
+          <div class="field field-full">
+            <label for="e-desc">Project description</label>
+            <textarea id="e-desc" placeholder="Brief description of the project and its complexity."></textarea>
+          </div>
+          <div class="field">
+            <label for="e-pm">Project Manager</label>
+            <input type="text" id="e-pm" placeholder="e.g. Priya Sharma" />
+          </div>
+          <div class="field">
+            <label for="e-sponsor">Project Sponsor</label>
+            <input type="text" id="e-sponsor" placeholder="e.g. Vikram Mehta (VP Engineering)" />
+          </div>
+          <div class="field field-full">
+            <label for="e-team">Team structure</label>
+            <input type="text" id="e-team" placeholder="e.g. 2 leads, 8 devs, 2 QA, 1 BA across 3 locations" />
+          </div>
+          <div class="field field-full">
+            <label for="e-stakeholders">Key stakeholders</label>
+            <input type="text" id="e-stakeholders" placeholder="e.g. Finance Director, CTO, Operations Head, Client POC" />
+          </div>
+        </div>
+        <button class="btn-generate" onclick="handleGenerate('Escalation Matrix')">
+          ✦ Generate Escalation Matrix
+        </button>
+      </div>
+
+      <!-- Stakeholder Register -->
+      <div class="doc-form-body" id="form-stakeholder" style="display:none;">
+        <div class="form-grid">
+          <div class="field field-full">
+            <label for="sh-project">Project name</label>
+            <input type="text" id="sh-project" placeholder="e.g. Customer Portal Redesign" />
+          </div>
+          <div class="field field-full">
+            <label for="sh-objectives">Project objectives</label>
+            <textarea id="sh-objectives" placeholder="What is this project trying to achieve?"></textarea>
+          </div>
+          <div class="field">
+            <label for="sh-industry">Industry / Domain</label>
+            <input type="text" id="sh-industry" placeholder="e.g. Fintech, Healthcare, E-commerce" />
+          </div>
+          <div class="field">
+            <label for="sh-phase">Current phase</label>
+            <select id="sh-phase">
+              <option value="">Select phase</option>
+              <option>Initiation</option>
+              <option>Planning</option>
+              <option>Execution</option>
+              <option>Monitoring</option>
+              <option>Closure</option>
+            </select>
+          </div>
+          <div class="field field-full">
+            <label for="sh-known">Known stakeholders</label>
+            <textarea id="sh-known" placeholder="List names and roles you already know, e.g. Rahul Gupta (CFO), Design Team, End Users (Sales Dept)"></textarea>
+          </div>
+        </div>
+        <button class="btn-generate" onclick="handleGenerate('Stakeholder Register')">
+          ✦ Generate Stakeholder Register
+        </button>
+      </div>
+
+      <!-- RAID Log -->
+      <div class="doc-form-body" id="form-raid" style="display:none;">
+        <div class="form-grid">
+          <div class="field field-full">
+            <label for="rd-project">Project name</label>
+            <input type="text" id="rd-project" placeholder="e.g. Data Centre Migration" />
+          </div>
+          <div class="field field-full">
+            <label for="rd-desc">Project description</label>
+            <textarea id="rd-desc" placeholder="Brief description of the project scope and goals."></textarea>
+          </div>
+          <div class="field">
+            <label for="rd-phase">Current phase</label>
+            <select id="rd-phase">
+              <option value="">Select phase</option>
+              <option>Initiation</option>
+              <option>Planning</option>
+              <option>Execution</option>
+              <option>Monitoring</option>
+              <option>Closure</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="rd-team">Team size</label>
+            <input type="text" id="rd-team" placeholder="e.g. 12 people across engineering and ops" />
+          </div>
+          <div class="field field-full">
+            <label for="rd-issues">Known issues (optional)</label>
+            <textarea id="rd-issues" placeholder="Any issues or blockers you are already aware of." style="min-height:64px;"></textarea>
+          </div>
+          <div class="field field-full">
+            <label for="rd-dependencies">Key dependencies (optional)</label>
+            <textarea id="rd-dependencies" placeholder="External teams, vendors, or systems this project depends on." style="min-height:64px;"></textarea>
+          </div>
+        </div>
+        <button class="btn-generate" onclick="handleGenerate('RAID Log')">
+          ✦ Generate RAID Log
+        </button>
       </div>
 
     </div>
@@ -508,20 +617,16 @@
     document.querySelectorAll('.doc-type-tab').forEach(btn =>
       btn.classList.toggle('active', btn.dataset.doc === docKey));
 
-    ['charter','risk','status'].forEach(k =>
-      document.getElementById('form-' + k).style.display = 'none');
+    ['charter','risk','status','escalation','stakeholder','raid'].forEach(k => {
+      const el = document.getElementById('form-' + k);
+      if (el) el.style.display = 'none';
+    });
     document.getElementById('form-pro-locked').classList.remove('show');
 
     if (info.pro && userProfile?.tier !== 'pro') {
       document.getElementById('form-pro-locked').classList.add('show');
-    } else if (!info.pro) {
-      document.getElementById('form-' + docKey).style.display = 'block';
     } else {
-      document.getElementById('form-pro-locked').innerHTML = `
-        <div class="pro-locked-icon">${info.icon}</div>
-        <h3>${info.label}</h3>
-        <p style="color:var(--muted);">AI generation for this document type is coming in the next step. Your Pro access is active!</p>`;
-      document.getElementById('form-pro-locked').classList.add('show');
+      document.getElementById('form-' + docKey).style.display = 'block';
     }
 
     document.getElementById('sidebar').classList.remove('open');
@@ -546,10 +651,10 @@
       const inputs      = getFormInputs();
       const projectName = getProjectName() || 'Untitled';
 
-      const res = await fetch('/api/generate-charter', {
+      const res = await fetch('/api/generate-document', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ inputs, token: session.access_token }),
+        body: JSON.stringify({ inputs, token: session.access_token, docType: currentDoc }),
       });
 
       /* non-200 responses are JSON errors */
@@ -636,8 +741,11 @@
   });
 
   function getProjectName() {
-    const map = { charter: 'c-name', risk: 'r-project', status: 's-project' };
-    const el  = document.getElementById(map[currentDoc]);
+    const map = {
+      charter: 'c-name', risk: 'r-project', status: 's-project',
+      escalation: 'e-project', stakeholder: 'sh-project', raid: 'rd-project',
+    };
+    const el = document.getElementById(map[currentDoc]);
     return el ? el.value.trim() : '';
   }
 
