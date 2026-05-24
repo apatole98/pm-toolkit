@@ -363,7 +363,35 @@
 
 <!-- Generate success toast -->
 <div id="gen-toast" style="display:none; position:fixed; bottom:28px; right:28px; background:#111827; color:#fff; padding:14px 22px; border-radius:12px; font-size:.9rem; font-weight:600; z-index:300; box-shadow:0 8px 24px rgba(0,0,0,.25);">
-  ✦ Document saved! AI generation aayega next step mein.
+  ✦ Document generated and saved!
+</div>
+
+<!-- ═══════════════════════════════
+     DOCUMENT VIEWER MODAL
+═══════════════════════════════ -->
+<div id="doc-viewer" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:400; align-items:flex-start; justify-content:center; padding:24px; overflow-y:auto;">
+  <div style="background:#fff; border-radius:16px; width:100%; max-width:780px; margin:auto; box-shadow:0 24px 64px rgba(0,0,0,.25); overflow:hidden;">
+
+    <!-- viewer header -->
+    <div style="display:flex; align-items:center; justify-content:space-between; padding:18px 24px; border-bottom:1px solid var(--border); background:var(--bg-soft);">
+      <div>
+        <div style="font-size:.75rem; font-weight:700; letter-spacing:.07em; text-transform:uppercase; color:var(--brand); margin-bottom:2px;">Generated Document</div>
+        <div style="font-weight:800; font-size:1.05rem;" id="viewer-title">Project Charter</div>
+      </div>
+      <div style="display:flex; gap:10px; align-items:center;">
+        <button onclick="copyDocument()" style="display:flex; align-items:center; gap:6px; padding:8px 16px; border:1.5px solid var(--border); border-radius:8px; background:#fff; font-family:var(--font); font-size:.85rem; font-weight:600; cursor:pointer;" id="copy-btn">
+          Copy
+        </button>
+        <button onclick="closeViewer()" style="padding:8px 16px; border:none; border-radius:8px; background:var(--text); color:#fff; font-family:var(--font); font-size:.85rem; font-weight:600; cursor:pointer;">
+          Close
+        </button>
+      </div>
+    </div>
+
+    <!-- generated content -->
+    <div id="viewer-content" style="padding:32px; font-size:.95rem; line-height:1.8; color:var(--text); white-space:pre-wrap; font-family:'Inter', system-ui, sans-serif;"></div>
+
+  </div>
 </div>
 
 <!-- Supabase -->
@@ -501,7 +529,7 @@
 
   function proGateClick(e) { e.stopPropagation(); showUpgradeModal(); }
 
-  /* ── Generate → save to Supabase ── */
+  /* ── Generate → call AI → save to Supabase ── */
   async function handleGenerate(label) {
     const isPro = userProfile?.tier === 'pro';
     const used  = userProfile?.docs_used_this_month || 0;
@@ -509,34 +537,94 @@
     if (!isPro && used >= FREE_LIMIT) { showUpgradeModal(); return; }
 
     const btn = document.querySelector('#form-' + currentDoc + ' .btn-generate');
-    if (btn) { btn.disabled = true; btn.textContent = 'Saving…'; }
+    if (btn) { btn.disabled = true; btn.textContent = '⏳ Generating…'; }
 
-    const { error } = await supabase.from('documents').insert({
-      user_id:      currentUser.id,
-      type:         label,
-      project_name: getProjectName() || 'Untitled',
-      inputs:       getFormInputs(),
-      content:      '',
-    });
+    try {
+      /* get current session token to send to serverless function */
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) { window.location.href = 'login.html'; return; }
 
-    if (error) {
-      alert('Error: ' + error.message);
+      const inputs      = getFormInputs();
+      const projectName = getProjectName() || 'Untitled';
+
+      /* call Netlify serverless function */
+      const res = await fetch('/api/generate-charter', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ inputs, token: session.access_token }),
+      });
+
+      const result = await res.json();
+
+      if (!res.ok || result.error) {
+        alert('Generation failed: ' + (result.error || 'Unknown error'));
+        return;
+      }
+
+      const generatedContent = result.content;
+
+      /* save to Supabase documents table */
+      const { error: saveErr } = await supabase.from('documents').insert({
+        user_id:      currentUser.id,
+        type:         label,
+        project_name: projectName,
+        inputs:       inputs,
+        content:      generatedContent,
+      });
+
+      if (saveErr) {
+        alert('Save failed: ' + saveErr.message);
+        return;
+      }
+
+      /* increment usage counter */
+      const newUsed = used + 1;
+      await supabase.from('profiles')
+        .update({ docs_used_this_month: newUsed })
+        .eq('id', currentUser.id);
+      userProfile.docs_used_this_month = newUsed;
+      renderUsage();
+
+      await loadRecentDocs();
+      showToast();
+
+      /* show generated document in viewer */
+      openViewer(label, generatedContent);
+
+    } catch (e) {
+      alert('Error: ' + e.message);
+    } finally {
       if (btn) { btn.disabled = false; btn.textContent = '✦ Generate ' + label; }
-      return;
     }
-
-    /* increment usage */
-    const newUsed = used + 1;
-    await supabase.from('profiles')
-      .update({ docs_used_this_month: newUsed })
-      .eq('id', currentUser.id);
-    userProfile.docs_used_this_month = newUsed;
-    renderUsage();
-
-    if (btn) { btn.disabled = false; btn.textContent = '✦ Generate ' + label; }
-    await loadRecentDocs();
-    showToast();
   }
+
+  /* ── Document viewer ── */
+  function openViewer(title, content) {
+    document.getElementById('viewer-title').textContent = title;
+    document.getElementById('viewer-content').textContent = content;
+    document.getElementById('doc-viewer').style.display = 'flex';
+    document.getElementById('doc-viewer').scrollTop = 0;
+  }
+
+  function closeViewer() {
+    document.getElementById('doc-viewer').style.display = 'none';
+  }
+
+  async function copyDocument() {
+    const text = document.getElementById('viewer-content').textContent;
+    try {
+      await navigator.clipboard.writeText(text);
+      const btn = document.getElementById('copy-btn');
+      btn.textContent = 'Copied!';
+      setTimeout(() => { btn.textContent = 'Copy'; }, 2000);
+    } catch(e) {
+      alert('Copy failed — please select text manually.');
+    }
+  }
+
+  document.getElementById('doc-viewer').addEventListener('click', function(e) {
+    if (e.target === this) closeViewer();
+  });
 
   function getProjectName() {
     const map = { charter: 'c-name', risk: 'r-project', status: 's-project' };
@@ -584,9 +672,13 @@
     Object.values(DOC_TYPES).forEach(d => { iconMap[d.label] = d.icon; });
 
     tbody.innerHTML = docs.map(doc => {
-      const icon   = iconMap[doc.type] || '📄';
-      const date   = new Date(doc.created_at).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' });
-      const status = doc.content ? 'done' : 'draft';
+      const icon    = iconMap[doc.type] || '📄';
+      const date    = new Date(doc.created_at).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' });
+      const status  = doc.content ? 'done' : 'draft';
+      const safe    = doc.content ? encodeURIComponent(doc.content) : '';
+      const viewBtn = doc.content
+        ? `<button class="btn-icon" onclick="openViewer('${doc.type}', decodeURIComponent('${safe}'))">View</button>`
+        : '';
       return `
         <tr>
           <td><div class="doc-row-type"><span class="doc-row-icon">${icon}</span>${doc.type}</div></td>
@@ -595,7 +687,7 @@
           <td><span class="doc-status ${status}">${status === 'done' ? 'Generated' : 'Pending AI'}</span></td>
           <td>
             <div class="doc-actions">
-              <button class="btn-icon" onclick="alert('Edit aayega next step mein!')">Edit</button>
+              ${viewBtn}
               <button class="btn-icon" onclick="deleteDoc('${doc.id}')">Delete</button>
             </div>
           </td>
