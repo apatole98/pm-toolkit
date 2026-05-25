@@ -11,6 +11,11 @@
 
   <link rel="stylesheet" href="css/main.css" />
   <link rel="stylesheet" href="css/dashboard.css" />
+  <style media="print">
+    body > *:not(#print-area) { display: none !important; }
+    #print-area { display: block !important; }
+    @page { margin: 2cm; }
+  </style>
 </head>
 <body class="dash-page">
 
@@ -114,7 +119,7 @@
     <div class="sidebar-upgrade" id="upgrade-card">
       <h4>Upgrade to Pro</h4>
       <p>Unlock all 7 document types, PDF export & unlimited generations.</p>
-      <button class="btn-upgrade" onclick="showUpgradeModal()">Upgrade — ₹999/mo</button>
+      <button class="btn-upgrade" onclick="showUpgradeModal('sidebar')">Upgrade — ₹499/mo</button>
     </div>
 
   </aside>
@@ -282,7 +287,7 @@
         <div class="pro-locked-icon">🔒</div>
         <h3>This document requires Pro</h3>
         <p>Upgrade to unlock Escalation Matrix, Stakeholder Register, RAID Log, PDF export, and unlimited generations.</p>
-        <button class="btn btn-primary" onclick="showUpgradeModal()">Upgrade to Pro — ₹999/mo</button>
+        <button class="btn btn-primary" onclick="showUpgradeModal('pro-doc')">Upgrade to Pro — ₹499/mo</button>
       </div>
 
       <!-- Escalation Matrix -->
@@ -436,10 +441,10 @@
   <div style="background:#fff; border-radius:18px; padding:40px; width:90%; max-width:420px; box-shadow:0 24px 64px rgba(0,0,0,.2); text-align:center;">
     <div style="font-size:2.2rem; margin-bottom:12px;">🚀</div>
     <h2 style="font-size:1.4rem; font-weight:800; margin-bottom:8px;">Upgrade to Pro</h2>
-    <p style="font-size:.93rem; color:var(--muted); margin-bottom:24px; line-height:1.6;">Unlock all 7 document types, PDF export, unlimited generations, and full document history.</p>
+    <p id="upgrade-reason" style="font-size:.93rem; color:var(--muted); margin-bottom:24px; line-height:1.6;">Unlock all 6 document types, PDF export, aur unlimited generations.</p>
 
     <div style="background:var(--bg-soft); border:1px solid var(--border); border-radius:12px; padding:20px; margin-bottom:24px; text-align:left;">
-      <div style="font-size:1.8rem; font-weight:900; color:var(--text); margin-bottom:2px;">₹999 <span style="font-size:1rem; font-weight:500; color:var(--muted);">/ month</span></div>
+      <div style="font-size:1.8rem; font-weight:900; color:var(--text); margin-bottom:2px;">₹499 <span style="font-size:1rem; font-weight:500; color:var(--muted);">/ month</span></div>
       <div style="font-size:.82rem; color:var(--muted);">Cancel anytime. No lock-in.</div>
     </div>
 
@@ -462,7 +467,7 @@
     </ul>
 
     <button class="btn btn-primary" style="width:100%; padding:14px; font-size:1rem;" onclick="handleUpgrade()">
-      Pay with Razorpay →
+      Upgrade — ₹499/month →
     </button>
     <button onclick="closeUpgradeModal()" style="margin-top:12px; background:none; border:none; font-size:.88rem; color:var(--muted); cursor:pointer; font-family:var(--font);">
       Maybe later
@@ -490,6 +495,9 @@
       <div style="display:flex; gap:10px; align-items:center;">
         <button onclick="copyDocument()" style="display:flex; align-items:center; gap:6px; padding:8px 16px; border:1.5px solid var(--border); border-radius:8px; background:#fff; font-family:var(--font); font-size:.85rem; font-weight:600; cursor:pointer;" id="copy-btn">
           Copy
+        </button>
+        <button id="pdf-btn" onclick="exportPDF()" style="display:none; align-items:center; gap:6px; padding:8px 16px; border:1.5px solid var(--brand); border-radius:8px; background:var(--brand-light); color:var(--brand); font-family:var(--font); font-size:.85rem; font-weight:600; cursor:pointer;">
+          PDF
         </button>
         <button onclick="closeViewer()" style="padding:8px 16px; border:none; border-radius:8px; background:var(--text); color:#fff; font-family:var(--font); font-size:.85rem; font-weight:600; cursor:pointer;">
           Close
@@ -639,10 +647,15 @@
 
   /* ── Generate → stream AI → save to Supabase ── */
   async function handleGenerate(label) {
-    const isPro = userProfile?.tier === 'pro';
-    const used  = userProfile?.docs_used_this_month || 0;
+    const isPro   = userProfile?.tier === 'pro';
+    const used    = userProfile?.docs_used_this_month || 0;
+    const docInfo = DOC_TYPES[currentDoc];
 
-    if (!isPro && used >= FREE_LIMIT) { showUpgradeModal(); return; }
+    /* Pro-only doc type check */
+    if (!isPro && docInfo?.pro) { showUpgradeModal('pro-doc'); return; }
+
+    /* Monthly limit check */
+    if (!isPro && used >= FREE_LIMIT) { showUpgradeModal('limit'); return; }
 
     const btn = document.querySelector('#form-' + currentDoc + ' .btn-generate');
     if (btn) { btn.disabled = true; btn.textContent = '⏳ Generating…'; }
@@ -733,6 +746,30 @@
     document.getElementById('viewer-content').textContent = content;
     document.getElementById('doc-viewer').style.display = 'flex';
     document.getElementById('doc-viewer').scrollTop = 0;
+    /* show PDF button only for Pro users */
+    const pdfBtn = document.getElementById('pdf-btn');
+    pdfBtn.style.display = userProfile?.tier === 'pro' ? 'flex' : 'none';
+  }
+
+  function exportPDF() {
+    const title   = document.getElementById('viewer-title').textContent;
+    const content = document.getElementById('viewer-content').textContent;
+    const win = window.open('', '_blank');
+    win.document.write(`<!DOCTYPE html><html><head>
+      <meta charset="UTF-8"/>
+      <title>${title}</title>
+      <style>
+        body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 13px;
+               line-height: 1.7; color: #111; padding: 40px; max-width: 800px; margin: auto; }
+        h1 { font-size: 1.5rem; border-bottom: 2px solid #2563eb; padding-bottom: 8px; }
+        h2 { font-size: 1.1rem; color: #1d4ed8; margin-top: 24px; }
+        pre, p { white-space: pre-wrap; word-wrap: break-word; }
+      </style>
+    </head><body>
+      <pre>${content.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</pre>
+      <script>window.onload=()=>{window.print();}<\/script>
+    </body></html>`);
+    win.document.close();
   }
 
   function closeViewer() {
@@ -838,9 +875,18 @@
   }
 
   /* ── Upgrade modal ── */
-  function showUpgradeModal() { document.getElementById('upgrade-modal').style.display = 'flex'; }
+  function showUpgradeModal(reason) {
+    const msg = {
+      'limit':   'Is mahine ke 5 free documents use ho gaye hain. Unlimited documents ke liye Pro pe upgrade karo.',
+      'pro-doc': 'Yeh document type sirf Pro users ke liye available hai. Upgrade karo to unlock karo.',
+      'sidebar': 'Unlock all 6 document types, PDF export, aur unlimited generations.',
+    };
+    document.getElementById('upgrade-reason').textContent =
+      msg[reason] || 'Unlock all 6 document types, PDF export, aur unlimited generations.';
+    document.getElementById('upgrade-modal').style.display = 'flex';
+  }
   function closeUpgradeModal() { document.getElementById('upgrade-modal').style.display = 'none'; }
-  function handleUpgrade() { alert('Razorpay integration aayega next step mein!'); closeUpgradeModal(); }
+  function handleUpgrade() { alert('Razorpay payment integration aayega Step 10 mein!'); closeUpgradeModal(); }
   document.getElementById('upgrade-modal').addEventListener('click', function(e) {
     if (e.target === this) closeUpgradeModal();
   });
