@@ -36,7 +36,7 @@
       <li><a href="#pricing">Pricing</a></li>
     </ul>
 
-    <div class="nav-actions">
+    <div class="nav-actions" id="nav-actions">
       <a href="login.html" class="btn btn-ghost">Log in</a>
       <a href="login.html#signup" class="btn btn-primary">Get Started Free</a>
     </div>
@@ -455,6 +455,31 @@
       }
     });
   });
+</script>
+
+<!-- Supabase: show user name in navbar if logged in -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.0/dist/umd/supabase.min.js"></script>
+<script src="js/db.js"></script>
+<script>
+  (async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
+      const name = session.user.user_metadata?.full_name
+        || session.user.email.split('@')[0];
+      const initial = name.charAt(0).toUpperCase();
+
+      document.getElementById('nav-actions').innerHTML = `
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="display:flex;align-items:center;gap:8px;font-size:.88rem;color:var(--muted);">
+            <div style="width:30px;height:30px;border-radius:50%;background:var(--brand-light);color:var(--brand);font-weight:700;font-size:.8rem;display:flex;align-items:center;justify-content:center;">${initial}</div>
+            ${name.split(' ')[0]}
+          </div>
+          <a href="dashboard.html" class="btn btn-primary">Go to Dashboard</a>
+        </div>`;
+    } catch(e) { /* session check failed silently, keep default buttons */ }
+  })();
 </script>
 
 </body>
