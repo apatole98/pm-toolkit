@@ -514,6 +514,8 @@
 <!-- Supabase -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.0/dist/umd/supabase.min.js"></script>
 <script src="js/db.js"></script>
+<!-- Razorpay Checkout -->
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
 <script>
   const FREE_LIMIT = 5;
@@ -886,7 +888,107 @@
     document.getElementById('upgrade-modal').style.display = 'flex';
   }
   function closeUpgradeModal() { document.getElementById('upgrade-modal').style.display = 'none'; }
-  function handleUpgrade() { alert('Razorpay payment integration aayega Step 10 mein!'); closeUpgradeModal(); }
+
+  async function handleUpgrade() {
+    const upgradeBtn = document.querySelector('#upgrade-modal .btn.btn-primary');
+    upgradeBtn.disabled = true;
+    upgradeBtn.textContent = '⏳ Preparing payment…';
+
+    try {
+      /* Step 1: Create Razorpay order on server */
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) { window.location.href = 'login.html'; return; }
+
+      const orderRes = await fetch('/api/create-order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      if (!orderRes.ok) {
+        const err = await orderRes.json().catch(() => ({}));
+        alert('Could not start payment: ' + (err.error || 'Server error'));
+        return;
+      }
+      const orderData = await orderRes.json();
+
+      /* Step 2: Open Razorpay checkout popup */
+      closeUpgradeModal();
+
+      const rzpOptions = {
+        key:         orderData.keyId,
+        amount:      orderData.amount,
+        currency:    orderData.currency,
+        order_id:    orderData.orderId,
+        name:        'PM Toolkit',
+        description: 'Pro Plan — ₹499/month',
+        prefill: {
+          name:  userProfile?.full_name || '',
+          email: currentUser?.email     || '',
+        },
+        theme: { color: '#2563eb' },
+        modal: {
+          ondismiss: () => {
+            upgradeBtn.disabled    = false;
+            upgradeBtn.textContent = 'Upgrade — ₹499/month →';
+          },
+        },
+        handler: async function(response) {
+          /* Step 3: Verify payment on server and upgrade account */
+          upgradeBtn.disabled    = true;
+          upgradeBtn.textContent = '⏳ Verifying payment…';
+
+          try {
+            const verifyRes = await fetch('/api/verify-payment', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                orderId:   response.razorpay_order_id,
+                paymentId: response.razorpay_payment_id,
+                signature: response.razorpay_signature,
+                token:     session.access_token,
+              }),
+            });
+
+            if (!verifyRes.ok) {
+              const err = await verifyRes.json().catch(() => ({}));
+              alert('Payment verification failed: ' + (err.error || 'Please contact support.'));
+              return;
+            }
+
+            /* Step 4: Payment verified — update local state and UI */
+            userProfile.tier = 'pro';
+            document.getElementById('upgrade-card').style.display = 'none';
+            document.querySelector('.usage-cta').style.display    = 'none';
+            unlockProTabs();
+            renderUsage();
+
+            /* Show success toast */
+            const t = document.getElementById('gen-toast');
+            t.textContent = '🎉 Welcome to Pro! All features unlocked.';
+            t.style.display = 'block';
+            setTimeout(() => {
+              t.style.display = 'none';
+              t.textContent   = '✦ Document generated and saved!';
+            }, 4000);
+
+          } catch (e) {
+            alert('Verification error: ' + e.message);
+          } finally {
+            upgradeBtn.disabled    = false;
+            upgradeBtn.textContent = 'Upgrade — ₹499/month →';
+          }
+        },
+      };
+
+      const rzp = new Razorpay(rzpOptions);
+      rzp.open();
+
+    } catch (e) {
+      alert('Payment error: ' + e.message);
+      upgradeBtn.disabled    = false;
+      upgradeBtn.textContent = 'Upgrade — ₹499/month →';
+    }
+  }
+
   document.getElementById('upgrade-modal').addEventListener('click', function(e) {
     if (e.target === this) closeUpgradeModal();
   });
