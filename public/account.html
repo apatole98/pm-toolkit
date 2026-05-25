@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Account Settings — PM Toolkit</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/dashboard.css" />
+
+  <style>
+    .account-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      max-width: 620px;
+    }
+    .account-card {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .account-card-header {
+      padding: 18px 24px 14px;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg-soft);
+    }
+    .account-card-header h3 {
+      font-size: .95rem;
+      font-weight: 700;
+      color: var(--text);
+      margin: 0;
+    }
+    .account-card-header p {
+      font-size: .8rem;
+      color: var(--muted);
+      margin: 3px 0 0;
+    }
+    .account-card-body {
+      padding: 24px;
+    }
+    .acc-field {
+      margin-bottom: 18px;
+    }
+    .acc-field:last-child { margin-bottom: 0; }
+    .acc-field label {
+      display: block;
+      font-size: .82rem;
+      font-weight: 600;
+      color: var(--muted);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+    }
+    .acc-field input {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      font-family: var(--font);
+      font-size: .93rem;
+      color: var(--text);
+      background: #fff;
+      box-sizing: border-box;
+      transition: border-color .15s;
+    }
+    .acc-field input:focus {
+      outline: none;
+      border-color: var(--brand);
+    }
+    .acc-field input:disabled {
+      background: var(--bg-soft);
+      color: var(--muted);
+      cursor: not-allowed;
+    }
+    .acc-save-btn {
+      margin-top: 20px;
+      padding: 10px 24px;
+      background: var(--brand);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-family: var(--font);
+      font-size: .9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .15s;
+    }
+    .acc-save-btn:hover { background: var(--brand-dark); }
+    .acc-save-btn:disabled { opacity: .6; cursor: not-allowed; }
+
+    /* Plan card */
+    .plan-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: .82rem;
+      font-weight: 700;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+    }
+    .plan-badge.free {
+      background: #f3f4f6;
+      color: #374151;
+      border: 1.5px solid var(--border);
+    }
+    .plan-badge.pro {
+      background: #faf5ff;
+      color: #7c3aed;
+      border: 1.5px solid #c4b5fd;
+    }
+    .plan-details {
+      margin-top: 16px;
+      padding: 16px;
+      background: var(--bg-soft);
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+    .plan-details p {
+      margin: 0 0 8px;
+      font-size: .88rem;
+      color: var(--text);
+    }
+    .plan-details p:last-child { margin-bottom: 0; }
+    .plan-usage-bar {
+      height: 6px;
+      background: var(--border);
+      border-radius: 4px;
+      margin-top: 8px;
+      overflow: hidden;
+    }
+    .plan-usage-fill {
+      height: 100%;
+      background: var(--brand);
+      border-radius: 4px;
+      transition: width .3s;
+    }
+    .plan-upgrade-btn {
+      margin-top: 16px;
+      padding: 10px 24px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-family: var(--font);
+      font-size: .9rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .plan-upgrade-btn:hover { opacity: .9; }
+
+    /* success / error inline msg */
+    .acc-msg {
+      margin-top: 12px;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: .86rem;
+      font-weight: 500;
+      display: none;
+    }
+    .acc-msg.success { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
+    .acc-msg.error   { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+
+    .avatar-row {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+    .avatar-large {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: var(--brand);
+      color: #fff;
+      font-size: 1.4rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .avatar-info h4 { margin: 0 0 2px; font-size: 1rem; font-weight: 700; }
+    .avatar-info p  { margin: 0; font-size: .82rem; color: var(--muted); }
+  </style>
+</head>
+<body class="dash-page">
+
+<!-- ════════════════════════════════════════
+     TOP NAVBAR
+════════════════════════════════════════ -->
+<nav class="dash-nav">
+  <button class="sidebar-toggle" onclick="toggleSidebar()" aria-label="Menu">☰</button>
+
+  <a href="index.html" class="nav-logo">
+    <svg width="26" height="26" viewBox="0 0 30 30" fill="none">
+      <rect width="30" height="30" rx="8" fill="#2563eb"/>
+      <path d="M7 10h16M7 15h10M7 20h13" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/>
+    </svg>
+    PM Toolkit
+  </a>
+
+  <div class="dash-nav-right">
+    <div class="user-chip">
+      <div class="user-avatar" id="user-avatar">A</div>
+      <span id="user-name">Account</span>
+      <span class="pro-pill" id="nav-pro-pill" style="display:none;">PRO</span>
+    </div>
+    <button class="btn-logout" onclick="handleLogout()">Log out</button>
+  </div>
+</nav>
+
+
+<!-- ════════════════════════════════════════
+     BODY
+════════════════════════════════════════ -->
+<div class="dash-body">
+
+  <!-- ── SIDEBAR ── -->
+  <aside class="dash-sidebar" id="sidebar">
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Documents</div>
+      <ul class="sidebar-nav">
+        <li><a href="dashboard.html"><span class="sidebar-icon">📋</span>Project Charter</a></li>
+        <li><a href="dashboard.html"><span class="sidebar-icon">⚠️</span>Risk Register</a></li>
+        <li><a href="dashboard.html"><span class="sidebar-icon">📊</span>Status Report</a></li>
+        <li><a href="dashboard.html"><span class="sidebar-icon">🚨</span>Escalation Matrix</a></li>
+        <li><a href="dashboard.html"><span class="sidebar-icon">👥</span>Stakeholder Register</a></li>
+        <li><a href="dashboard.html"><span class="sidebar-icon">🔗</span>RAID Log</a></li>
+      </ul>
+    </div>
+
+    <div class="sidebar-section" style="margin-top:auto; padding-top:0;">
+      <div class="sidebar-label">Account</div>
+      <ul class="sidebar-nav">
+        <li class="active">
+          <a href="account.html"><span class="sidebar-icon">⚙️</span>Settings</a>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Upgrade card (Free users only) -->
+    <div class="sidebar-upgrade" id="upgrade-card" style="display:none;">
+      <h4>Upgrade to Pro</h4>
+      <p>Unlock all 6 document types, PDF export & unlimited generations.</p>
+      <button class="btn-upgrade" onclick="window.location.href='dashboard.html'">Upgrade — ₹499/mo</button>
+    </div>
+
+  </aside>
+
+
+  <!-- ── MAIN CONTENT ── -->
+  <main class="dash-main">
+
+    <div class="dash-section-title" style="margin-bottom:24px;">Account Settings</div>
+
+    <div class="account-grid">
+
+      <!-- ── Profile Card ── -->
+      <div class="account-card">
+        <div class="account-card-header">
+          <h3>Profile</h3>
+          <p>Update your display name</p>
+        </div>
+        <div class="account-card-body">
+          <div class="avatar-row">
+            <div class="avatar-large" id="avatar-large">A</div>
+            <div class="avatar-info">
+              <h4 id="profile-display-name">Loading…</h4>
+              <p id="profile-email">…</p>
+            </div>
+          </div>
+
+          <div class="acc-field">
+            <label for="input-name">Full name</label>
+            <input type="text" id="input-name" placeholder="Apna naam daalo" />
+          </div>
+          <div class="acc-field">
+            <label for="input-email">Email address</label>
+            <input type="email" id="input-email" disabled />
+          </div>
+
+          <button class="acc-save-btn" id="save-profile-btn" onclick="saveProfile()">Save Changes</button>
+          <div class="acc-msg" id="profile-msg"></div>
+        </div>
+      </div>
+
+      <!-- ── Plan Card ── -->
+      <div class="account-card">
+        <div class="account-card-header">
+          <h3>Plan & Usage</h3>
+          <p>Your current subscription and this month's usage</p>
+        </div>
+        <div class="account-card-body">
+          <div id="plan-section">
+            <!-- filled by JS -->
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Security Card ── -->
+      <div class="account-card">
+        <div class="account-card-header">
+          <h3>Change Password</h3>
+          <p>Set a new password for your account</p>
+        </div>
+        <div class="account-card-body">
+          <div class="acc-field">
+            <label for="input-new-pwd">New password</label>
+            <input type="password" id="input-new-pwd" placeholder="Min 6 characters" />
+          </div>
+          <div class="acc-field">
+            <label for="input-confirm-pwd">Confirm new password</label>
+            <input type="password" id="input-confirm-pwd" placeholder="Repeat new password" />
+          </div>
+
+          <button class="acc-save-btn" id="save-pwd-btn" onclick="changePassword()">Update Password</button>
+          <div class="acc-msg" id="pwd-msg"></div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<!-- Supabase -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.0/dist/umd/supabase.min.js"></script>
+<script src="js/db.js"></script>
+<!-- Razorpay Checkout -->
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+<script>
+  const FREE_LIMIT = 5;
+  let currentUser = null;
+  let userProfile  = null;
+
+  /* ── Init ── */
+  async function init() {
+    try {
+      const { data: { session }, error } = await supabase.auth.getSession();
+      if (error || !session) { window.location.href = 'login.html'; return; }
+      currentUser = session.user;
+      await loadProfile();
+    } catch (e) {
+      window.location.href = 'login.html';
+    }
+  }
+
+  /* ── Load profile ── */
+  async function loadProfile() {
+    const { data } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', currentUser.id)
+      .single();
+
+    userProfile = data || { tier: 'free', docs_used_this_month: 0 };
+
+    const displayName = userProfile.full_name || currentUser.email.split('@')[0];
+    const initial     = displayName.charAt(0).toUpperCase();
+
+    document.getElementById('user-avatar').textContent    = initial;
+    document.getElementById('avatar-large').textContent   = initial;
+    document.getElementById('user-name').textContent      = displayName.split(' ')[0];
+    document.getElementById('profile-display-name').textContent = displayName;
+    document.getElementById('profile-email').textContent  = currentUser.email;
+
+    document.getElementById('input-name').value  = userProfile.full_name || '';
+    document.getElementById('input-email').value = currentUser.email;
+
+    /* Pro badge in navbar */
+    if (userProfile.tier === 'pro') {
+      document.getElementById('nav-pro-pill').style.display = 'inline-flex';
+    }
+
+    /* Upgrade card */
+    if (userProfile.tier !== 'pro') {
+      document.getElementById('upgrade-card').style.display = 'block';
+    }
+
+    renderPlanSection();
+  }
+
+  /* ── Plan section ── */
+  function renderPlanSection() {
+    const isPro  = userProfile?.tier === 'pro';
+    const used   = userProfile?.docs_used_this_month || 0;
+    const left   = Math.max(0, FREE_LIMIT - used);
+    const pct    = Math.min(100, (used / FREE_LIMIT) * 100);
+    const el     = document.getElementById('plan-section');
+
+    if (isPro) {
+      el.innerHTML = `
+        <span class="plan-badge pro">★ Pro Plan</span>
+        <div class="plan-details">
+          <p style="color:var(--muted); font-size:.85rem;">Aapke paas unlimited document generations hain, saare 6 document types, aur PDF export.</p>
+        </div>`;
+    } else {
+      el.innerHTML = `
+        <span class="plan-badge free">Free Plan</span>
+        <div class="plan-details">
+          <p><strong>${left} document${left !== 1 ? 's' : ''}</strong> remaining this month</p>
+          <p style="color:var(--muted); font-size:.82rem;">${used} of ${FREE_LIMIT} used</p>
+          <div class="plan-usage-bar">
+            <div class="plan-usage-fill" style="width:${pct}%; background:${pct >= 80 ? '#ef4444' : pct >= 60 ? '#f59e0b' : 'var(--brand)'};"></div>
+          </div>
+        </div>
+        <button class="plan-upgrade-btn" onclick="handleUpgrade()">Upgrade to Pro — ₹499/month</button>`;
+    }
+  }
+
+  /* ── Save profile name ── */
+  async function saveProfile() {
+    const name = document.getElementById('input-name').value.trim();
+    const btn  = document.getElementById('save-profile-btn');
+    const msg  = document.getElementById('profile-msg');
+
+    if (!name) { showMsg(msg, 'error', 'Naam khaali nahi ho sakta.'); return; }
+
+    btn.disabled    = true;
+    btn.textContent = 'Saving…';
+    hideMsg(msg);
+
+    const { error } = await supabase
+      .from('profiles')
+      .update({ full_name: name })
+      .eq('id', currentUser.id);
+
+    if (error) {
+      showMsg(msg, 'error', 'Save failed: ' + error.message);
+    } else {
+      userProfile.full_name = name;
+      document.getElementById('user-name').textContent            = name.split(' ')[0];
+      document.getElementById('avatar-large').textContent         = name.charAt(0).toUpperCase();
+      document.getElementById('user-avatar').textContent          = name.charAt(0).toUpperCase();
+      document.getElementById('profile-display-name').textContent = name;
+      showMsg(msg, 'success', 'Profile updated successfully!');
+    }
+
+    btn.disabled    = false;
+    btn.textContent = 'Save Changes';
+  }
+
+  /* ── Change password ── */
+  async function changePassword() {
+    const newPwd     = document.getElementById('input-new-pwd').value;
+    const confirmPwd = document.getElementById('input-confirm-pwd').value;
+    const btn        = document.getElementById('save-pwd-btn');
+    const msg        = document.getElementById('pwd-msg');
+
+    hideMsg(msg);
+
+    if (!newPwd) { showMsg(msg, 'error', 'Naya password daalo.'); return; }
+    if (newPwd.length < 6) { showMsg(msg, 'error', 'Password kam se kam 6 characters ka hona chahiye.'); return; }
+    if (newPwd !== confirmPwd) { showMsg(msg, 'error', 'Dono passwords match nahi kar rahe.'); return; }
+
+    btn.disabled    = true;
+    btn.textContent = 'Updating…';
+
+    const { error } = await supabase.auth.updateUser({ password: newPwd });
+
+    if (error) {
+      showMsg(msg, 'error', 'Password update failed: ' + error.message);
+    } else {
+      document.getElementById('input-new-pwd').value     = '';
+      document.getElementById('input-confirm-pwd').value = '';
+      showMsg(msg, 'success', 'Password successfully updated!');
+    }
+
+    btn.disabled    = false;
+    btn.textContent = 'Update Password';
+  }
+
+  /* ── Razorpay upgrade ── */
+  async function handleUpgrade() {
+    const upgradeBtn = document.querySelector('.plan-upgrade-btn');
+    if (upgradeBtn) { upgradeBtn.disabled = true; upgradeBtn.textContent = '⏳ Preparing…'; }
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) { window.location.href = 'login.html'; return; }
+
+      const orderRes = await fetch('/api/create-order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      if (!orderRes.ok) {
+        const err = await orderRes.json().catch(() => ({}));
+        alert('Could not start payment: ' + (err.error || 'Server error'));
+        if (upgradeBtn) { upgradeBtn.disabled = false; upgradeBtn.textContent = 'Upgrade to Pro — ₹499/month'; }
+        return;
+      }
+      const orderData = await orderRes.json();
+
+      const rzp = new Razorpay({
+        key:         orderData.keyId,
+        amount:      orderData.amount,
+        currency:    orderData.currency,
+        order_id:    orderData.orderId,
+        name:        'PM Toolkit',
+        description: 'Pro Plan — ₹499/month',
+        prefill: {
+          name:  userProfile?.full_name || '',
+          email: currentUser?.email     || '',
+        },
+        theme: { color: '#2563eb' },
+        modal: {
+          ondismiss: () => {
+            if (upgradeBtn) { upgradeBtn.disabled = false; upgradeBtn.textContent = 'Upgrade to Pro — ₹499/month'; }
+          },
+        },
+        handler: async function(response) {
+          if (upgradeBtn) upgradeBtn.textContent = '⏳ Verifying…';
+
+          const verifyRes = await fetch('/api/verify-payment', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              orderId:   response.razorpay_order_id,
+              paymentId: response.razorpay_payment_id,
+              signature: response.razorpay_signature,
+              token:     session.access_token,
+            }),
+          });
+
+          if (!verifyRes.ok) {
+            const err = await verifyRes.json().catch(() => ({}));
+            alert('Payment verification failed: ' + (err.error || 'Please contact support.'));
+            if (upgradeBtn) { upgradeBtn.disabled = false; upgradeBtn.textContent = 'Upgrade to Pro — ₹499/month'; }
+            return;
+          }
+
+          /* Success — reload the page to reflect Pro status */
+          userProfile.tier = 'pro';
+          document.getElementById('nav-pro-pill').style.display = 'inline-flex';
+          document.getElementById('upgrade-card').style.display = 'none';
+          renderPlanSection();
+          alert('🎉 Welcome to Pro! All features are now unlocked.');
+        },
+      });
+      rzp.open();
+
+    } catch (e) {
+      alert('Payment error: ' + e.message);
+      if (upgradeBtn) { upgradeBtn.disabled = false; upgradeBtn.textContent = 'Upgrade to Pro — ₹499/month'; }
+    }
+  }
+
+  /* ── Helpers ── */
+  function showMsg(el, type, text) {
+    el.className      = 'acc-msg ' + type;
+    el.textContent    = text;
+    el.style.display  = 'block';
+  }
+  function hideMsg(el) { el.style.display = 'none'; }
+
+  function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
+
+  async function handleLogout() {
+    await supabase.auth.signOut();
+    window.location.href = 'login.html';
+  }
+
+  init();
+</script>
+
+</body>
+</html>

@@ -59,6 +59,19 @@
   flex-shrink: 0;
 }
 
+.pro-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  background: #faf5ff;
+  color: #7c3aed;
+  border: 1.5px solid #c4b5fd;
+  border-radius: 20px;
+  font-size: .68rem;
+  font-weight: 800;
+  letter-spacing: .06em;
+}
+
 .btn-logout {
   background: none;
   border: 1px solid var(--border);

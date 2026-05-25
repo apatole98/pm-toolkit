@@ -37,6 +37,7 @@
     <div class="user-chip">
       <div class="user-avatar" id="user-avatar">A</div>
       <span id="user-name">Aarav</span>
+      <span class="pro-pill" id="nav-pro-pill" style="display:none;">PRO</span>
     </div>
     <button class="btn-logout" onclick="handleLogout()">Log out</button>
   </div>
@@ -107,7 +108,7 @@
       <div class="sidebar-label">Account</div>
       <ul class="sidebar-nav">
         <li>
-          <a href="#">
+          <a href="account.html">
             <span class="sidebar-icon">⚙️</span>
             Settings
           </a>
@@ -589,6 +590,7 @@
     if (userProfile.tier === 'pro') {
       document.getElementById('upgrade-card').style.display = 'none';
       document.querySelector('.usage-cta').style.display    = 'none';
+      document.getElementById('nav-pro-pill').style.display = 'inline-flex';
       unlockProTabs();
     }
 
