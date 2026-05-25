@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Privacy Policy — PM Toolkit</title>
+  <meta name="description" content="PM Toolkit Privacy Policy — how we collect, use, and protect your data." />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="css/main.css" />
+
+  <style>
+    body { background: var(--bg-soft); color: var(--text); font-family: var(--font); }
+
+    .legal-nav {
+      height: 60px;
+      background: #fff;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 32px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .legal-nav a.logo {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text);
+      text-decoration: none;
+      margin-right: auto;
+    }
+    .legal-nav .nav-links {
+      display: flex;
+      gap: 20px;
+      font-size: .87rem;
+    }
+    .legal-nav .nav-links a {
+      color: var(--muted);
+      text-decoration: none;
+    }
+    .legal-nav .nav-links a:hover { color: var(--brand); }
+
+    .legal-wrap {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 48px 24px 80px;
+    }
+    .legal-hero {
+      margin-bottom: 40px;
+      padding-bottom: 28px;
+      border-bottom: 1px solid var(--border);
+    }
+    .legal-hero .badge {
+      display: inline-block;
+      background: var(--brand-light);
+      color: var(--brand);
+      font-size: .75rem;
+      font-weight: 700;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      padding: 4px 12px;
+      border-radius: 20px;
+      margin-bottom: 14px;
+    }
+    .legal-hero h1 {
+      font-size: 2rem;
+      font-weight: 800;
+      margin: 0 0 10px;
+    }
+    .legal-hero p {
+      color: var(--muted);
+      font-size: .93rem;
+      margin: 0;
+    }
+
+    .legal-body h2 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin: 36px 0 10px;
+      color: var(--text);
+    }
+    .legal-body p, .legal-body li {
+      font-size: .93rem;
+      line-height: 1.75;
+      color: #374151;
+      margin: 0 0 12px;
+    }
+    .legal-body ul {
+      padding-left: 20px;
+      margin: 0 0 12px;
+    }
+    .legal-body li { margin-bottom: 6px; }
+    .legal-body a { color: var(--brand); }
+
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0 20px;
+      font-size: .88rem;
+    }
+    .data-table th {
+      background: var(--bg-soft);
+      border: 1px solid var(--border);
+      padding: 10px 14px;
+      text-align: left;
+      font-weight: 700;
+      font-size: .8rem;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      color: var(--muted);
+    }
+    .data-table td {
+      border: 1px solid var(--border);
+      padding: 10px 14px;
+      vertical-align: top;
+      color: #374151;
+      line-height: 1.5;
+    }
+
+    .legal-footer {
+      margin-top: 60px;
+      padding-top: 28px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: .82rem;
+      color: var(--muted);
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .legal-footer a { color: var(--muted); text-decoration: none; }
+    .legal-footer a:hover { color: var(--brand); }
+  </style>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="legal-nav">
+  <a href="index.html" class="logo">
+    <svg width="26" height="26" viewBox="0 0 30 30" fill="none">
+      <rect width="30" height="30" rx="8" fill="#2563eb"/>
+      <path d="M7 10h16M7 15h10M7 20h13" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/>
+    </svg>
+    PM Toolkit
+  </a>
+  <div class="nav-links">
+    <a href="terms.html">Terms of Service</a>
+    <a href="login.html">Log In</a>
+  </div>
+</nav>
+
+<div class="legal-wrap">
+
+  <div class="legal-hero">
+    <span class="badge">Legal</span>
+    <h1>Privacy Policy</h1>
+    <p>Last updated: 25 May 2026 &nbsp;·&nbsp; Effective immediately</p>
+  </div>
+
+  <div class="legal-body">
+
+    <p>PM Toolkit ("we", "us", "our") is committed to protecting your privacy. This policy explains what data we collect, why we collect it, and how we use it.</p>
+
+    <h2>1. Data We Collect</h2>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Data</th>
+          <th>Why we collect it</th>
+          <th>Stored where</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Name &amp; email address</td>
+          <td>Account creation and login</td>
+          <td>Supabase (encrypted)</td>
+        </tr>
+        <tr>
+          <td>Form inputs you type</td>
+          <td>To generate your PM documents</td>
+          <td>Supabase (your account only)</td>
+        </tr>
+        <tr>
+          <td>Generated document content</td>
+          <td>To save and show your document history</td>
+          <td>Supabase (your account only)</td>
+        </tr>
+        <tr>
+          <td>Usage count (docs/month)</td>
+          <td>To enforce Free plan limits</td>
+          <td>Supabase</td>
+        </tr>
+        <tr>
+          <td>Payment status (tier: free/pro)</td>
+          <td>To determine your plan</td>
+          <td>Supabase</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p>We do <strong>not</strong> collect credit card or bank details — all payment processing is handled by Razorpay.</p>
+
+    <h2>2. Third-Party Services</h2>
+    <p>We use the following third-party services to operate PM Toolkit:</p>
+    <ul>
+      <li><strong>Supabase</strong> — authentication and database. Your account data and documents are stored here. <a href="https://supabase.com/privacy" target="_blank" rel="noopener">Supabase Privacy Policy</a></li>
+      <li><strong>Anthropic (Claude AI)</strong> — generates your documents. Your form inputs are sent to Anthropic's API to produce the document. Anthropic does not use API inputs to train their models by default. <a href="https://www.anthropic.com/privacy" target="_blank" rel="noopener">Anthropic Privacy Policy</a></li>
+      <li><strong>Razorpay</strong> — processes payments for Pro plan. We receive only a confirmation of payment status, not your card details. <a href="https://razorpay.com/privacy/" target="_blank" rel="noopener">Razorpay Privacy Policy</a></li>
+      <li><strong>Netlify</strong> — hosts the website and serverless functions. Standard server access logs may be retained. <a href="https://www.netlify.com/privacy/" target="_blank" rel="noopener">Netlify Privacy Policy</a></li>
+    </ul>
+
+    <h2>3. How We Use Your Data</h2>
+    <ul>
+      <li>To create and maintain your account</li>
+      <li>To generate documents based on the inputs you provide</li>
+      <li>To track your monthly usage and enforce plan limits</li>
+      <li>To upgrade your account to Pro after a successful payment</li>
+      <li>To respond to support requests</li>
+    </ul>
+    <p>We do <strong>not</strong> sell your data to any third party. We do not use your documents to train any AI model.</p>
+
+    <h2>4. Data Retention</h2>
+    <p>Your account data and documents are retained as long as your account is active. If you delete your account, we will delete your data from our systems within 30 days.</p>
+
+    <h2>5. Security</h2>
+    <p>We use industry-standard security measures including:</p>
+    <ul>
+      <li>All data transmitted over HTTPS (TLS encryption)</li>
+      <li>Row-Level Security (RLS) in our database — you can only access your own data</li>
+      <li>API keys and secrets stored as server environment variables, never in frontend code</li>
+    </ul>
+    <p>No system is 100% secure. If you believe there is a security issue, please contact us immediately.</p>
+
+    <h2>6. Cookies</h2>
+    <p>PM Toolkit uses minimal cookies — only those set by Supabase to maintain your login session (a JWT token stored in browser local storage). We do not use advertising or tracking cookies.</p>
+
+    <h2>7. Your Rights</h2>
+    <p>You have the right to:</p>
+    <ul>
+      <li><strong>Access</strong> — request a copy of the data we hold about you</li>
+      <li><strong>Correction</strong> — update your name via the Account Settings page</li>
+      <li><strong>Deletion</strong> — request that we delete your account and all associated data</li>
+    </ul>
+    <p>To exercise any of these rights, email us at <a href="mailto:support@pmtoolkit.in">support@pmtoolkit.in</a>.</p>
+
+    <h2>8. Children's Privacy</h2>
+    <p>PM Toolkit is not intended for users under 18 years of age. We do not knowingly collect personal data from minors.</p>
+
+    <h2>9. Changes to This Policy</h2>
+    <p>We may update this Privacy Policy from time to time. We will post the updated version on this page with a new "Last updated" date. Continued use of PM Toolkit after changes constitutes acceptance of the revised policy.</p>
+
+    <h2>10. Contact Us</h2>
+    <p>If you have any questions or concerns about this Privacy Policy, please contact us at <a href="mailto:support@pmtoolkit.in">support@pmtoolkit.in</a>.</p>
+
+  </div>
+
+  <div class="legal-footer">
+    <span>© 2026 PM Toolkit. All rights reserved.</span>
+    <div style="display:flex; gap:20px;">
+      <a href="privacy.html">Privacy Policy</a>
+      <a href="terms.html">Terms of Service</a>
+      <a href="index.html">Home</a>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
