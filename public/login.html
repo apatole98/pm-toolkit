@@ -68,6 +68,7 @@
         <span>Download as PDF, edit in browser, share instantly</span>
       </li>
     </ul>
+    <div class="auth-panel-orb"></div>
   </div>
 
   <!-- RIGHT PANEL -->
@@ -214,8 +215,8 @@
 <!-- ════════════════════════════════════════
      FORGOT PASSWORD MODAL
 ════════════════════════════════════════ -->
-<div id="forgot-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.4); z-index:200; align-items:center; justify-content:center;">
-  <div style="background:#fff; border-radius:16px; padding:36px; width:90%; max-width:400px; box-shadow:0 20px 60px rgba(0,0,0,.2);">
+<div id="forgot-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:200; align-items:center; justify-content:center;">
+  <div class="forgot-inner">
     <h3 style="font-size:1.2rem; font-weight:800; margin-bottom:8px;">Reset your password</h3>
     <p style="font-size:.9rem; color:var(--muted); margin-bottom:24px;">Enter your email and we'll send you a reset link.</p>
 
@@ -231,7 +232,7 @@
         <span class="spinner"></span>
         <span class="btn-text">Send Reset Link</span>
       </button>
-      <button onclick="closeForgotModal()" style="flex-shrink:0; padding:13px 20px; border:1.5px solid var(--border); border-radius:var(--radius); background:#fff; cursor:pointer; font-family:var(--font); font-weight:600; font-size:.95rem;">Cancel</button>
+      <button onclick="closeForgotModal()" class="btn-cancel">Cancel</button>
     </div>
   </div>
 </div>
