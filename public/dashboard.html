@@ -407,7 +407,7 @@
     <div class="recent-docs-card">
       <div class="recent-docs-header">
         <h3>Recent documents</h3>
-        <span style="font-size:.82rem; color:var(--muted);" id="recent-count">0 documents</span>
+        <span class="recent-count-label" id="recent-count">0 documents</span>
       </div>
 
       <!-- Empty state (shown when no docs) -->
@@ -438,76 +438,58 @@
 <!-- ════════════════════════════════════════
      UPGRADE MODAL
 ════════════════════════════════════════ -->
-<div id="upgrade-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:200; align-items:center; justify-content:center;">
-  <div style="background:#fff; border-radius:18px; padding:40px; width:90%; max-width:420px; box-shadow:0 24px 64px rgba(0,0,0,.2); text-align:center;">
+<div id="upgrade-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:200; align-items:center; justify-content:center;">
+  <div class="upgrade-modal-inner">
     <div style="font-size:2.2rem; margin-bottom:12px;">🚀</div>
-    <h2 style="font-size:1.4rem; font-weight:800; margin-bottom:8px;">Upgrade to Pro</h2>
-    <p id="upgrade-reason" style="font-size:.93rem; color:var(--muted); margin-bottom:24px; line-height:1.6;">Unlock all 6 document types, PDF export, aur unlimited generations.</p>
+    <h2>Upgrade to Pro</h2>
+    <p id="upgrade-reason">Unlock all 6 document types, PDF export, aur unlimited generations.</p>
 
-    <div style="background:var(--bg-soft); border:1px solid var(--border); border-radius:12px; padding:20px; margin-bottom:24px; text-align:left;">
-      <div style="font-size:1.8rem; font-weight:900; color:var(--text); margin-bottom:2px;">₹499 <span style="font-size:1rem; font-weight:500; color:var(--muted);">/ month</span></div>
-      <div style="font-size:.82rem; color:var(--muted);">Cancel anytime. No lock-in.</div>
+    <div class="upgrade-price-box">
+      <div class="price-amount">₹499 <span>/ month</span></div>
+      <div class="price-sub">Cancel anytime. No lock-in.</div>
     </div>
 
-    <ul style="list-style:none; text-align:left; margin-bottom:24px; display:flex; flex-direction:column; gap:10px;">
-      <li style="display:flex; align-items:center; gap:8px; font-size:.9rem;">
-        <span style="color:#16a34a; font-weight:700;">✓</span> All 7 document types
-      </li>
-      <li style="display:flex; align-items:center; gap:8px; font-size:.9rem;">
-        <span style="color:#16a34a; font-weight:700;">✓</span> Unlimited monthly generations
-      </li>
-      <li style="display:flex; align-items:center; gap:8px; font-size:.9rem;">
-        <span style="color:#16a34a; font-weight:700;">✓</span> PDF export (clean, shareable layout)
-      </li>
-      <li style="display:flex; align-items:center; gap:8px; font-size:.9rem;">
-        <span style="color:#16a34a; font-weight:700;">✓</span> Full document history
-      </li>
-      <li style="display:flex; align-items:center; gap:8px; font-size:.9rem;">
-        <span style="color:#16a34a; font-weight:700;">✓</span> Priority AI generation
-      </li>
+    <ul class="upgrade-feature-list">
+      <li><span class="check">✓</span> All 7 document types</li>
+      <li><span class="check">✓</span> Unlimited monthly generations</li>
+      <li><span class="check">✓</span> PDF export (clean, shareable layout)</li>
+      <li><span class="check">✓</span> Full document history</li>
+      <li><span class="check">✓</span> Priority AI generation</li>
     </ul>
 
     <button class="btn btn-primary" style="width:100%; padding:14px; font-size:1rem;" onclick="handleUpgrade()">
       Upgrade — ₹499/month →
     </button>
-    <button onclick="closeUpgradeModal()" style="margin-top:12px; background:none; border:none; font-size:.88rem; color:var(--muted); cursor:pointer; font-family:var(--font);">
-      Maybe later
-    </button>
+    <button onclick="closeUpgradeModal()" class="btn-modal-later">Maybe later</button>
   </div>
 </div>
 
 <!-- Generate success toast -->
-<div id="gen-toast" style="display:none; position:fixed; bottom:28px; right:28px; background:#111827; color:#fff; padding:14px 22px; border-radius:12px; font-size:.9rem; font-weight:600; z-index:300; box-shadow:0 8px 24px rgba(0,0,0,.25);">
+<div id="gen-toast" style="display:none;" class="gen-toast">
   ✦ Document generated and saved!
 </div>
 
 <!-- ═══════════════════════════════
      DOCUMENT VIEWER MODAL
 ═══════════════════════════════ -->
-<div id="doc-viewer" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:400; align-items:flex-start; justify-content:center; padding:24px; overflow-y:auto;">
-  <div style="background:#fff; border-radius:16px; width:100%; max-width:780px; margin:auto; box-shadow:0 24px 64px rgba(0,0,0,.25); overflow:hidden;">
+<div id="doc-viewer" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.65); z-index:400; align-items:flex-start; justify-content:center; padding:24px; overflow-y:auto;">
+  <div class="doc-viewer-inner">
 
     <!-- viewer header -->
-    <div style="display:flex; align-items:center; justify-content:space-between; padding:18px 24px; border-bottom:1px solid var(--border); background:var(--bg-soft);">
+    <div class="doc-viewer-header">
       <div>
-        <div style="font-size:.75rem; font-weight:700; letter-spacing:.07em; text-transform:uppercase; color:var(--brand); margin-bottom:2px;">Generated Document</div>
-        <div style="font-weight:800; font-size:1.05rem;" id="viewer-title">Project Charter</div>
+        <div class="viewer-label">Generated Document</div>
+        <div class="viewer-title-text" id="viewer-title">Project Charter</div>
       </div>
-      <div style="display:flex; gap:10px; align-items:center;">
-        <button onclick="copyDocument()" style="display:flex; align-items:center; gap:6px; padding:8px 16px; border:1.5px solid var(--border); border-radius:8px; background:#fff; font-family:var(--font); font-size:.85rem; font-weight:600; cursor:pointer;" id="copy-btn">
-          Copy
-        </button>
-        <button id="pdf-btn" onclick="exportPDF()" style="display:none; align-items:center; gap:6px; padding:8px 16px; border:1.5px solid var(--brand); border-radius:8px; background:var(--brand-light); color:var(--brand); font-family:var(--font); font-size:.85rem; font-weight:600; cursor:pointer;">
-          PDF
-        </button>
-        <button onclick="closeViewer()" style="padding:8px 16px; border:none; border-radius:8px; background:var(--text); color:#fff; font-family:var(--font); font-size:.85rem; font-weight:600; cursor:pointer;">
-          Close
-        </button>
+      <div class="doc-viewer-actions">
+        <button onclick="copyDocument()" class="btn-copy" id="copy-btn">Copy</button>
+        <button id="pdf-btn" onclick="exportPDF()" class="btn-pdf-dl" style="display:none;">PDF</button>
+        <button onclick="closeViewer()" class="btn-close-viewer">Close</button>
       </div>
     </div>
 
     <!-- generated content -->
-    <div id="viewer-content" style="padding:32px; font-size:.95rem; line-height:1.8; color:var(--text); white-space:pre-wrap; font-family:'Inter', system-ui, sans-serif;"></div>
+    <div id="viewer-content" class="doc-viewer-body"></div>
 
   </div>
 </div>
@@ -857,7 +839,7 @@
         ? `<button class="btn-icon" onclick="viewDoc('${doc.id}')">View</button>`
         : '';
       return `
-        <tr${isNew ? ' style="background:#eff6ff;"' : ''}>
+        <tr${isNew ? ' class="row-new"' : ''}>
           <td><div class="doc-row-type"><span class="doc-row-icon">${icon}</span>${doc.type}</div></td>
           <td>${doc.project_name || '—'}</td>
           <td>${date}</td>
