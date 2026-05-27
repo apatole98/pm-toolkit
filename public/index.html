@@ -55,75 +55,87 @@
      HERO
 ════════════════════════════════════════ -->
 <section class="hero">
+  <div class="hero-blob"></div>
   <div class="container hero-inner">
 
     <div class="hero-content">
       <div class="hero-badge">
-        <span class="badge badge-blue">✦ AI-Powered PM Documents</span>
+        <span class="hero-badge-dot">✦</span>
+        AI-Powered · Instant · Professional
       </div>
       <h1 class="hero-title">
-        Professional PM Docs<br/>
-        Generated in <span>Seconds</span>
+        PM Documents<br/>
+        Ready in <span class="grad">30 Seconds</span>
       </h1>
       <p class="hero-sub">
         Stop spending hours writing Project Charters, Risk Registers, and RAID Logs.
-        Give PM Toolkit your project details — get a ready-to-share document instantly.
+        Describe your project — Claude AI writes the full document for you, instantly.
       </p>
       <div class="hero-cta">
         <a href="login.html#signup" class="btn btn-primary btn-lg">Start for Free →</a>
         <a href="#how" class="btn btn-ghost btn-lg">See how it works</a>
       </div>
+      <p class="hero-note">✓ No credit card &nbsp;·&nbsp; ✓ 5 free documents/month &nbsp;·&nbsp; ✓ Instant access</p>
     </div>
 
     <!-- Mock document card -->
-    <div class="hero-visual" aria-hidden="true">
-      <div class="mock-header">
-        <div class="mock-dot red"></div>
-        <div class="mock-dot yellow"></div>
-        <div class="mock-dot green"></div>
-        <div class="mock-title-bar"></div>
-        <span class="mock-tag">Generated ✓</span>
+    <div style="position:relative;">
+      <div class="hero-visual" aria-hidden="true">
+        <div class="mock-header">
+          <div class="mock-dot red"></div>
+          <div class="mock-dot yellow"></div>
+          <div class="mock-dot green"></div>
+          <div class="mock-title-bar"></div>
+          <span class="mock-tag">Generated ✓</span>
+        </div>
+        <div class="mock-body">
+          <div class="mock-row">
+            <div class="mock-icon">📋</div>
+            <div class="mock-lines">
+              <div class="mock-line long"></div>
+              <div class="mock-line short"></div>
+            </div>
+          </div>
+          <div class="mock-row">
+            <div class="mock-icon">⚠️</div>
+            <div class="mock-lines">
+              <div class="mock-line mid"></div>
+              <div class="mock-line long"></div>
+            </div>
+          </div>
+          <div class="mock-row">
+            <div class="mock-icon">👥</div>
+            <div class="mock-lines">
+              <div class="mock-line short"></div>
+              <div class="mock-line mid"></div>
+            </div>
+          </div>
+          <div class="mock-row">
+            <div class="mock-icon">📊</div>
+            <div class="mock-lines">
+              <div class="mock-line long"></div>
+              <div class="mock-line short"></div>
+            </div>
+          </div>
+          <div class="mock-row">
+            <div class="mock-icon">🔗</div>
+            <div class="mock-lines">
+              <div class="mock-line mid"></div>
+              <div class="mock-line long"></div>
+            </div>
+          </div>
+          <div class="mock-footer">
+            <div class="mock-btn primary">✦ Generate Doc</div>
+            <div class="mock-btn secondary">Export PDF</div>
+          </div>
+        </div>
       </div>
-      <div class="mock-body">
-        <div class="mock-row">
-          <div class="mock-icon">📋</div>
-          <div class="mock-lines">
-            <div class="mock-line long"></div>
-            <div class="mock-line short"></div>
-          </div>
-        </div>
-        <div class="mock-row">
-          <div class="mock-icon">⚠️</div>
-          <div class="mock-lines">
-            <div class="mock-line mid"></div>
-            <div class="mock-line long"></div>
-          </div>
-        </div>
-        <div class="mock-row">
-          <div class="mock-icon">👥</div>
-          <div class="mock-lines">
-            <div class="mock-line short"></div>
-            <div class="mock-line mid"></div>
-          </div>
-        </div>
-        <div class="mock-row">
-          <div class="mock-icon">📊</div>
-          <div class="mock-lines">
-            <div class="mock-line long"></div>
-            <div class="mock-line short"></div>
-          </div>
-        </div>
-        <div class="mock-row">
-          <div class="mock-icon">🔗</div>
-          <div class="mock-lines">
-            <div class="mock-line mid"></div>
-            <div class="mock-line long"></div>
-          </div>
-        </div>
-        <div style="margin-top:16px; display:flex; gap:10px;">
-          <div style="flex:1; height:36px; border-radius:8px; background:var(--brand); opacity:.15;"></div>
-          <div style="flex:1; height:36px; border-radius:8px; background:var(--bg-soft); border:1px solid var(--border);"></div>
-        </div>
+      <!-- floating badges -->
+      <div class="hero-badge-float top-right">
+        <span class="badge-dot-green"></span> AI generating…
+      </div>
+      <div class="hero-badge-float bottom-left">
+        <span class="badge-dot-purple"></span> 6 document types
       </div>
     </div>
 
@@ -132,17 +144,25 @@
 
 
 <!-- ════════════════════════════════════════
-     TRUST STRIP
+     STATS STRIP
 ════════════════════════════════════════ -->
-<div class="trust-strip">
-  <div class="container">
-    <p>Trusted by project managers at</p>
-    <div class="trust-logos">
-      <span class="trust-logo">TECHCORP</span>
-      <span class="trust-logo">BUILDWORKS</span>
-      <span class="trust-logo">NEXAFLOW</span>
-      <span class="trust-logo">STRATAGEM</span>
-      <span class="trust-logo">PRISMATIC</span>
+<div class="stats-strip">
+  <div class="stats-inner container">
+    <div class="stat-item">
+      <div class="stat-num">6</div>
+      <div class="stat-label">Document Types</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">&lt;30s</div>
+      <div class="stat-label">Average Generation Time</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">₹499</div>
+      <div class="stat-label">Per Month, Pro Plan</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">Claude</div>
+      <div class="stat-label">Powered by Anthropic AI</div>
     </div>
   </div>
 </div>
@@ -161,37 +181,37 @@
 
     <div class="features-grid">
 
-      <div class="feature-card">
+      <div class="feature-card reveal reveal-delay-1">
         <div class="feature-icon" style="background:#eff6ff;">⚡</div>
         <h3>Generate in Seconds</h3>
         <p>Fill in a short form about your project. AI produces a complete, structured document — no starting from scratch.</p>
       </div>
 
-      <div class="feature-card">
+      <div class="feature-card reveal reveal-delay-2">
         <div class="feature-icon" style="background:#f0fdf4;">✏️</div>
-        <h3>Edit & Customize</h3>
-        <p>Every generated document is fully editable in the browser. Tweak the content before downloading.</p>
+        <h3>Edit & Copy</h3>
+        <p>Every generated document is fully readable in the browser. Copy the content and paste it anywhere.</p>
       </div>
 
-      <div class="feature-card">
+      <div class="feature-card reveal reveal-delay-3">
         <div class="feature-icon" style="background:#fef3c7;">📄</div>
-        <h3>Download as PDF</h3>
+        <h3>Export as PDF</h3>
         <p>Export clean, professional PDFs ready to share with stakeholders, clients, or leadership. (Pro plan)</p>
       </div>
 
-      <div class="feature-card">
+      <div class="feature-card reveal reveal-delay-1">
         <div class="feature-icon" style="background:#fdf4ff;">🤖</div>
         <h3>Claude AI Powered</h3>
         <p>Documents are generated by Anthropic's Claude — one of the most capable AI models available today.</p>
       </div>
 
-      <div class="feature-card">
+      <div class="feature-card reveal reveal-delay-2">
         <div class="feature-icon" style="background:#fff1f2;">🔐</div>
         <h3>Secure by Design</h3>
         <p>Your project data stays in your account. API keys never touch the frontend — all AI calls run server-side.</p>
       </div>
 
-      <div class="feature-card">
+      <div class="feature-card reveal reveal-delay-3">
         <div class="feature-icon" style="background:#f0fdf4;">📁</div>
         <h3>Document History</h3>
         <p>All your generated documents are saved to your account so you can revisit and update them anytime.</p>
@@ -213,20 +233,20 @@
     </div>
 
     <div class="steps-grid">
-      <div class="step-card">
+      <div class="step-card reveal reveal-delay-1">
         <div class="step-num">1</div>
         <h3>Choose a Document</h3>
-        <p>Select from 7 standard PM document types — Charter, Risk Register, RAID Log, and more.</p>
+        <p>Select from 6 standard PM document types — Charter, Risk Register, RAID Log, and more.</p>
       </div>
-      <div class="step-card">
+      <div class="step-card reveal reveal-delay-2">
         <div class="step-num">2</div>
         <h3>Fill in Project Details</h3>
         <p>Answer a short form: project name, goals, team, timeline, stakeholders. Takes 2–3 minutes.</p>
       </div>
-      <div class="step-card">
+      <div class="step-card reveal reveal-delay-3">
         <div class="step-num">3</div>
         <h3>Download & Share</h3>
-        <p>Review the AI-generated document, make edits, then download as PDF or plain text.</p>
+        <p>Review the AI-generated document, copy or export as PDF, and share with your team.</p>
       </div>
     </div>
   </div>
@@ -429,6 +449,17 @@
 
 
 <script>
+  /* scroll reveal */
+  const revealObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+        revealObserver.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.12 });
+  document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
   function toggleMobileMenu() {
     const links = document.querySelector('.nav-links');
     if (links) {
