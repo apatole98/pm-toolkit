@@ -20,25 +20,25 @@
       max-width: 620px;
     }
     .account-card {
-      background: #fff;
-      border: 1px solid var(--border);
+      background: rgba(255,255,255,.04);
+      border: 1px solid rgba(255,255,255,.08);
       border-radius: var(--radius);
       overflow: hidden;
     }
     .account-card-header {
       padding: 18px 24px 14px;
-      border-bottom: 1px solid var(--border);
-      background: var(--bg-soft);
+      border-bottom: 1px solid rgba(255,255,255,.07);
+      background: rgba(255,255,255,.025);
     }
     .account-card-header h3 {
       font-size: .95rem;
       font-weight: 700;
-      color: var(--text);
+      color: #f1f5f9;
       margin: 0;
     }
     .account-card-header p {
       font-size: .8rem;
-      color: var(--muted);
+      color: #94a3b8;
       margin: 3px 0 0;
     }
     .account-card-body {
@@ -52,7 +52,7 @@
       display: block;
       font-size: .82rem;
       font-weight: 600;
-      color: var(--muted);
+      color: #94a3b8;
       margin-bottom: 6px;
       text-transform: uppercase;
       letter-spacing: .05em;
@@ -60,28 +60,30 @@
     .acc-field input {
       width: 100%;
       padding: 10px 14px;
-      border: 1.5px solid var(--border);
+      border: 1.5px solid rgba(255,255,255,.1);
       border-radius: 8px;
       font-family: var(--font);
       font-size: .93rem;
-      color: var(--text);
-      background: #fff;
+      color: #f1f5f9;
+      background: rgba(255,255,255,.05);
       box-sizing: border-box;
-      transition: border-color .15s;
+      transition: border-color .15s, box-shadow .15s;
     }
+    .acc-field input::placeholder { color: #3b4c69; }
     .acc-field input:focus {
       outline: none;
-      border-color: var(--brand);
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59,130,246,.12);
     }
     .acc-field input:disabled {
-      background: var(--bg-soft);
-      color: var(--muted);
+      background: rgba(255,255,255,.025);
+      color: #475569;
       cursor: not-allowed;
     }
     .acc-save-btn {
       margin-top: 20px;
       padding: 10px 24px;
-      background: var(--brand);
+      background: linear-gradient(135deg, #2563eb, #3b82f6);
       color: #fff;
       border: none;
       border-radius: 8px;
@@ -89,10 +91,10 @@
       font-size: .9rem;
       font-weight: 600;
       cursor: pointer;
-      transition: background .15s;
+      transition: opacity .15s;
     }
-    .acc-save-btn:hover { background: var(--brand-dark); }
-    .acc-save-btn:disabled { opacity: .6; cursor: not-allowed; }
+    .acc-save-btn:hover { opacity: .88; }
+    .acc-save-btn:disabled { opacity: .5; cursor: not-allowed; }
 
     /* Plan card */
     .plan-badge {
@@ -107,45 +109,45 @@
       text-transform: uppercase;
     }
     .plan-badge.free {
-      background: #f3f4f6;
-      color: #374151;
-      border: 1.5px solid var(--border);
+      background: rgba(255,255,255,.07);
+      color: #94a3b8;
+      border: 1.5px solid rgba(255,255,255,.1);
     }
     .plan-badge.pro {
-      background: #faf5ff;
-      color: #7c3aed;
-      border: 1.5px solid #c4b5fd;
+      background: rgba(167,139,250,.15);
+      color: #a78bfa;
+      border: 1.5px solid rgba(167,139,250,.35);
     }
     .plan-details {
       margin-top: 16px;
       padding: 16px;
-      background: var(--bg-soft);
+      background: rgba(255,255,255,.03);
       border-radius: 8px;
-      border: 1px solid var(--border);
+      border: 1px solid rgba(255,255,255,.07);
     }
     .plan-details p {
       margin: 0 0 8px;
       font-size: .88rem;
-      color: var(--text);
+      color: #cbd5e1;
     }
     .plan-details p:last-child { margin-bottom: 0; }
     .plan-usage-bar {
       height: 6px;
-      background: var(--border);
+      background: rgba(255,255,255,.08);
       border-radius: 4px;
       margin-top: 8px;
       overflow: hidden;
     }
     .plan-usage-fill {
       height: 100%;
-      background: var(--brand);
+      background: #3b82f6;
       border-radius: 4px;
       transition: width .3s;
     }
     .plan-upgrade-btn {
       margin-top: 16px;
       padding: 10px 24px;
-      background: var(--accent);
+      background: linear-gradient(135deg, #7c3aed, #a78bfa);
       color: #fff;
       border: none;
       border-radius: 8px;
@@ -153,8 +155,9 @@
       font-size: .9rem;
       font-weight: 600;
       cursor: pointer;
+      transition: opacity .15s;
     }
-    .plan-upgrade-btn:hover { opacity: .9; }
+    .plan-upgrade-btn:hover { opacity: .88; }
 
     /* success / error inline msg */
     .acc-msg {
@@ -165,8 +168,8 @@
       font-weight: 500;
       display: none;
     }
-    .acc-msg.success { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
-    .acc-msg.error   { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+    .acc-msg.success { background: rgba(34,197,94,.1); color: #4ade80; border: 1px solid rgba(34,197,94,.2); }
+    .acc-msg.error   { background: rgba(239,68,68,.1); color: #f87171; border: 1px solid rgba(239,68,68,.2); }
 
     .avatar-row {
       display: flex;
@@ -178,8 +181,9 @@
       width: 56px;
       height: 56px;
       border-radius: 50%;
-      background: var(--brand);
-      color: #fff;
+      background: rgba(59,130,246,.2);
+      color: #60a5fa;
+      border: 1px solid rgba(59,130,246,.3);
       font-size: 1.4rem;
       font-weight: 800;
       display: flex;
@@ -187,8 +191,8 @@
       justify-content: center;
       flex-shrink: 0;
     }
-    .avatar-info h4 { margin: 0 0 2px; font-size: 1rem; font-weight: 700; }
-    .avatar-info p  { margin: 0; font-size: .82rem; color: var(--muted); }
+    .avatar-info h4 { margin: 0 0 2px; font-size: 1rem; font-weight: 700; color: #f1f5f9; }
+    .avatar-info p  { margin: 0; font-size: .82rem; color: #94a3b8; }
   </style>
 </head>
 <body class="dash-page">
@@ -315,7 +319,7 @@
         <div class="account-card-body">
           <div class="acc-field">
             <label for="input-new-pwd">New password</label>
-            <input type="password" id="input-new-pwd" placeholder="Min 6 characters" />
+            <input type="password" id="input-new-pwd" placeholder="Min 8 characters" />
           </div>
           <div class="acc-field">
             <label for="input-confirm-pwd">Confirm new password</label>
@@ -459,7 +463,7 @@
     hideMsg(msg);
 
     if (!newPwd) { showMsg(msg, 'error', 'Naya password daalo.'); return; }
-    if (newPwd.length < 6) { showMsg(msg, 'error', 'Password kam se kam 6 characters ka hona chahiye.'); return; }
+    if (newPwd.length < 8) { showMsg(msg, 'error', 'Password kam se kam 8 characters ka hona chahiye.'); return; }
     if (newPwd !== confirmPwd) { showMsg(msg, 'error', 'Dono passwords match nahi kar rahe.'); return; }
 
     btn.disabled    = true;
