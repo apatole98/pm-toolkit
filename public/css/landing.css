@@ -105,15 +105,16 @@
   position: relative;
 }
 
-/* dot grid */
-.hero::before {
-  content: '';
+/* dot grid — real element so GSAP can animate its position */
+.hero-grid {
   position: absolute;
-  inset: 0;
+  inset: -15% -15%;
   background-image: radial-gradient(circle, #e2e8f0 1px, transparent 1px);
   background-size: 28px 28px;
-  opacity: .5;
+  opacity: .45;
   pointer-events: none;
+  will-change: transform;
+  z-index: 0;
 }
 
 /* gradient blobs */
@@ -414,8 +415,11 @@
   padding: 28px 24px;
   position: relative;
   overflow: hidden;
-  transition: box-shadow .25s, transform .25s;
+  will-change: transform;
+  transform-style: preserve-3d;
+  transition: box-shadow .25s;
 }
+/* gradient top-border reveal */
 .feature-card::before {
   content: '';
   position: absolute;
@@ -423,13 +427,28 @@
   height: 3px;
   background: linear-gradient(90deg, var(--brand), var(--accent));
   opacity: 0;
-  transition: opacity .25s;
+  transition: opacity .3s;
+  z-index: 2;
 }
-.feature-card:hover {
-  box-shadow: 0 8px 30px rgba(37,99,235,.1);
-  transform: translateY(-4px);
+/* specular highlight follows mouse */
+.feature-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(
+    circle at var(--mx, 50%) var(--my, 50%),
+    rgba(255,255,255,.18) 0%,
+    transparent 55%
+  );
+  opacity: 0;
+  transition: opacity .25s;
+  pointer-events: none;
+  z-index: 1;
 }
 .feature-card:hover::before { opacity: 1; }
+.feature-card.tilting::after { opacity: 1; }
+.feature-card.tilting { box-shadow: 0 16px 48px rgba(37,99,235,.14); }
 
 .feature-icon {
   width: 48px; height: 48px;
@@ -785,24 +804,11 @@
 }
 
 
-/* ══════════════════════════════════════════
-   SCROLL REVEAL
-══════════════════════════════════════════ */
-.reveal {
-  opacity: 0;
-  transform: translateY(28px);
-  transition: opacity .65s ease, transform .65s ease;
-}
-.reveal.visible {
-  opacity: 1;
-  transform: translateY(0);
-}
-.reveal-delay-1 { transition-delay: .1s; }
-.reveal-delay-2 { transition-delay: .2s; }
-.reveal-delay-3 { transition-delay: .3s; }
-.reveal-delay-4 { transition-delay: .4s; }
-.reveal-delay-5 { transition-delay: .5s; }
+/* smooth scroll */
+html { scroll-behavior: smooth; }
 
+/* active nav link */
+.nav-links a.active { color: var(--brand); font-weight: 600; }
 
 /* ══════════════════════════════════════════
    RESPONSIVE
