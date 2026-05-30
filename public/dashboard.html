@@ -59,13 +59,6 @@
         </li>
 
         <li>
-          <button onclick="scrollToTemplate('client-comms')">
-            <span class="sidebar-icon">💬</span>
-            Client Communication
-          </button>
-        </li>
-
-        <li>
           <button onclick="scrollToTemplate('risk-register')">
             <span class="sidebar-icon">⚠️</span>
             Risk Register
@@ -114,7 +107,7 @@
     <!-- Upgrade card (Free users only) -->
     <div class="sidebar-upgrade" id="upgrade-card">
       <h4>Upgrade to Pro</h4>
-      <p>Unlock all 6 premium PM templates for download.</p>
+      <p>Unlock all 5 AI-filled PM templates.</p>
       <button class="btn-upgrade" onclick="showUpgradeModal('sidebar')">Upgrade — ₹499/mo</button>
     </div>
 
@@ -208,7 +201,7 @@
   <div class="upgrade-modal-inner">
     <div style="font-size:2.2rem; margin-bottom:12px;">🚀</div>
     <h2>Upgrade to Pro</h2>
-    <p id="upgrade-reason">Unlock all 6 premium PM templates for download.</p>
+    <p id="upgrade-reason">Unlock all 5 premium PM templates with AI fill.</p>
 
     <div class="upgrade-price-box">
       <div class="price-amount">₹499 <span>/ month</span></div>
@@ -216,7 +209,7 @@
     </div>
 
     <ul class="upgrade-feature-list">
-      <li><span class="check">✓</span> All 6 downloadable templates</li>
+      <li><span class="check">✓</span> All 5 AI-filled PM templates</li>
       <li><span class="check">✓</span> Project Charter Template</li>
       <li><span class="check">✓</span> Client Empathy Map (A3 Printable)</li>
       <li><span class="check">✓</span> SmartCity Stakeholder Mapping</li>
@@ -249,63 +242,90 @@ const TEMPLATES = {
   'pmo-sop': {
     name: 'PMO SOP — Hybrid Governance Framework',
     icon: '🏛️',
-    desc: 'Standard operating procedure for running a hybrid (agile + waterfall) project governance model.',
-    file: 'templates/PMO-SOP-006-V1_0-Hybrid_Governance_Framework__1_.docx',
-    pro:  false,
-    hasForm: false,
-  },
-  'client-comms': {
-    name: 'Client Communication Framework',
-    icon: '💬',
-    desc: 'Fill in your account details — AI builds the Expectation Canvas in the ESDS template format.',
-    file: 'templates/Client_Communication_Framework.docx',
+    desc: 'AI fills the SOP Sign-off table with your team details — download a ready-to-sign governance document.',
     pro:  false,
     hasForm: true,
   },
   'risk-register': {
     name: 'Risk Register — Simplified',
     icon: '⚠️',
-    desc: 'A clean, ready-to-fill Excel risk register to track risks, impact and mitigation.',
-    file: 'templates/Risk_Register_Simplified_Blank__1_.xlsx',
+    desc: 'Describe your project — AI generates 10 realistic risks with categories, probabilities, and mitigation actions.',
     pro:  false,
-    hasForm: false,
+    hasForm: true,
   },
   'charter': {
     name: 'Project Charter Template',
     icon: '📋',
-    desc: 'A complete project charter template to formally kick off and align any project.',
-    file: 'templates/Project_Charter_Template.docx',
+    desc: 'AI builds a complete project charter — scope, goals, risks, milestones — in your template\'s exact format.',
     pro:  true,
-    hasForm: false,
+    hasForm: true,
   },
   'empathy-map': {
     name: 'Client Empathy Map (A3 Printable)',
     icon: '🧠',
-    desc: 'An A3 printable empathy map to deeply understand your client\'s needs and pains.',
-    file: 'templates/Client_Empathy_Map_A3_Printable_1.docx',
+    desc: 'AI fills in goals, fears, success metrics and hidden stakeholders for your client — print-ready A3 format.',
     pro:  true,
-    hasForm: false,
+    hasForm: true,
   },
   'stakeholder-mapping': {
     name: 'SmartCity Stakeholder Mapping Template',
     icon: '👥',
-    desc: 'A stakeholder mapping template for large, complex multi-stakeholder projects.',
-    file: 'templates/SmartCity_Stakeholder_Mapping_Blank_Template.docx',
+    desc: 'AI maps power, interest and risk levels for 12 stakeholder groups in your SmartCity project.',
     pro:  true,
-    hasForm: false,
+    hasForm: true,
   },
 };
 
 /* ── Per-template form definitions ── */
 const FORMS = {
-  'client-comms': {
+  'pmo-sop': {
     fields: [
-      { id: 'account_name',       label: 'Client / Account Name',    type: 'text',     required: true,  placeholder: 'e.g. State Bank of India' },
-      { id: 'project_name',       label: 'Project / Engagement Name', type: 'text',     required: true,  placeholder: 'e.g. Core Banking Migration — Phase 2' },
-      { id: 'date',               label: 'Date',                     type: 'date',     required: false, placeholder: '' },
-      { id: 'will_deliver_raw',   label: 'What we WILL deliver',      type: 'textarea', required: true,  placeholder: 'List your key commitments, SLAs, deliverables...' },
-      { id: 'will_not_deliver_raw', label: 'What we will NOT deliver', type: 'textarea', required: true,  placeholder: 'List out-of-scope items clearly...' },
-      { id: 'need_from_client_raw', label: 'What we need FROM the client', type: 'textarea', required: true, placeholder: 'Access, approvals, data, stakeholder availability...' },
+      { id: 'org_name',      label: 'Organisation Name',      type: 'text', required: true,  placeholder: 'e.g. ESDS Software Solution Limited' },
+      { id: 'pmo_lead',      label: 'PMO Lead Name',          type: 'text', required: true,  placeholder: 'e.g. Priya Sharma' },
+      { id: 'exec_sponsor',  label: 'Executive Sponsor / MD', type: 'text', required: true,  placeholder: 'e.g. Piyush Somani' },
+      { id: 'board_chair',   label: 'Board Chair',            type: 'text', required: true,  placeholder: 'e.g. Rajesh Gupta' },
+      { id: 'head_delivery', label: 'Head of Delivery',       type: 'text', required: true,  placeholder: 'e.g. Ankit Joshi' },
+      { id: 'signoff_date',  label: 'Sign-off Date',          type: 'date', required: false, placeholder: '' },
+    ],
+  },
+  'risk-register': {
+    fields: [
+      { id: 'project_name',       label: 'Project Name',         type: 'text',     required: true,  placeholder: 'e.g. SmartCity Phase 2 — Nagpur' },
+      { id: 'team_name',          label: 'Team / Group Name',    type: 'text',     required: true,  placeholder: 'e.g. PMO — Infrastructure Projects' },
+      { id: 'industry',           label: 'Industry / Sector',    type: 'text',     required: false, placeholder: 'e.g. Government IT / SmartCity' },
+      { id: 'project_description', label: 'Brief Project Description', type: 'textarea', required: true, placeholder: 'Describe what the project does, key deliverables, stakeholders...' },
+    ],
+  },
+  'charter': {
+    fields: [
+      { id: 'project_title',     label: 'Project Title',          type: 'text',     required: true,  placeholder: 'e.g. Core Banking Migration — Phase 2' },
+      { id: 'sponsor',           label: 'Executive Sponsor',      type: 'text',     required: true,  placeholder: 'e.g. Piyush Somani, MD' },
+      { id: 'project_lead',      label: 'Project Lead / PM',      type: 'text',     required: true,  placeholder: 'e.g. Priya Sharma' },
+      { id: 'budget',            label: 'Budget (approx.)',        type: 'text',     required: false, placeholder: 'e.g. ₹2.4 Cr' },
+      { id: 'start_date',        label: 'Start Date',             type: 'date',     required: false, placeholder: '' },
+      { id: 'end_date',          label: 'End Date',               type: 'date',     required: false, placeholder: '' },
+      { id: 'problem_statement', label: 'Problem / Opportunity',  type: 'textarea', required: true,  placeholder: 'What problem does this project solve? What opportunity does it capture?' },
+      { id: 'goal_statement',    label: 'High-level Goal',        type: 'textarea', required: true,  placeholder: 'What is the project trying to achieve? What does success look like?' },
+    ],
+  },
+  'empathy-map': {
+    fields: [
+      { id: 'account_name',   label: 'Client / Account Name',       type: 'text',     required: true,  placeholder: 'e.g. Nagpur Smart City Development Corp' },
+      { id: 'project_name',   label: 'Project / Engagement',        type: 'text',     required: true,  placeholder: 'e.g. ICCC Integration — Phase 1' },
+      { id: 'client_type',    label: 'Client Type',                 type: 'text',     required: false, placeholder: 'e.g. Government / PSU / Enterprise' },
+      { id: 'primary_goal',   label: 'Client\'s Primary Goals',     type: 'textarea', required: true,  placeholder: 'What outcomes does the client want from this project?' },
+      { id: 'primary_fear',   label: 'Client\'s Primary Fears',     type: 'textarea', required: true,  placeholder: 'What worries them most — delays, audits, political risk?' },
+      { id: 'success_metric', label: 'How They Measure Success',    type: 'textarea', required: false, placeholder: 'KPIs, audit outcomes, or internal metrics they care about...' },
+    ],
+  },
+  'stakeholder-mapping': {
+    fields: [
+      { id: 'project_name',   label: 'Project Name',          type: 'text',     required: true,  placeholder: 'e.g. SmartCity Phase 2 — Nagpur ICCC' },
+      { id: 'city_location',  label: 'City / Location',       type: 'text',     required: true,  placeholder: 'e.g. Nagpur, Maharashtra' },
+      { id: 'contract_value', label: 'Contract Value',        type: 'text',     required: false, placeholder: 'e.g. ₹48 Cr' },
+      { id: 'timeline',       label: 'Project Timeline',      type: 'text',     required: false, placeholder: 'e.g. 18 months (Jun 2026 – Dec 2027)' },
+      { id: 'our_role',       label: 'Our Role in Project',   type: 'text',     required: true,  placeholder: 'e.g. Lead Systems Integrator & PMO' },
+      { id: 'key_challenge',  label: 'Key Challenge',         type: 'textarea', required: false, placeholder: 'Main challenge — political alignment, technical complexity, funding...' },
     ],
   },
 };
@@ -615,13 +635,13 @@ function scrollToTemplate(key) {
 ════════════════════════════════════════════════════════ */
 function showUpgradeModal(reason) {
   const msg = {
-    'pro-doc': 'Yeh template sirf Pro users ke liye hai. Pro pe upgrade karke saare premium templates unlock karo.',
-    'sidebar': 'Unlock all 6 premium PM templates for download.',
-    'limit':   'Monthly generation limit reached (5/month on Free plan). Upgrade to Pro for unlimited generations.',
-    'usage':   'Upgrade to Pro for unlimited AI generations and all 6 premium templates.',
+    'pro-doc': 'This template is for Pro users. Upgrade to unlock all 5 AI-filled PM templates.',
+    'sidebar': 'Unlock all 5 AI-filled PM templates with unlimited generations.',
+    'limit':   'Monthly generation limit reached (5/month on Free plan). Upgrade to Pro for unlimited.',
+    'usage':   'Upgrade to Pro for unlimited AI generations and all 5 PM templates.',
   };
   document.getElementById('upgrade-reason').textContent =
-    msg[reason] || 'Unlock all 6 premium PM templates.';
+    msg[reason] || 'Unlock all 5 AI-filled PM templates.';
   document.getElementById('upgrade-modal').style.display = 'flex';
 }
 function closeUpgradeModal() { document.getElementById('upgrade-modal').style.display = 'none'; }

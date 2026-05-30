@@ -1,36 +1,200 @@
-const PizZip    = require('pizzip');
+const PizZip      = require('pizzip');
 const Docxtemplater = require('docxtemplater');
-const Anthropic = require('@anthropic-ai/sdk');
+const Anthropic    = require('@anthropic-ai/sdk');
+const ExcelJS      = require('exceljs');
 
 const SUPABASE_URL  = 'https://yseddxycyfmnjmbmnsip.supabase.co';
 const SUPABASE_ANON = 'sb_publishable_dhQwFgU9-gRY57rksdUfpw_V0fsRv2o';
 
 /* ─────────────────────────────────────────────────────────────────────────────
    TEMPLATE CONFIG  — one entry per document type.
-   Add new templates here as they are built.
 ───────────────────────────────────────────────────────────────────────────── */
 const TEMPLATES = {
 
-  'client-comms': {
-    name: 'Client Communication Framework',
-    file: 'Client_Communication_Framework.docx',
+  /* ── 1. PMO SOP — FREE ──────────────────────────────────────────────────── */
+  'pmo-sop': {
+    name: 'PMO SOP — Hybrid Governance Framework',
+    file: 'PMO-SOP-006-V1_0-Hybrid_Governance_Framework__1_.docx',
     ext:  'docx',
     pro:  false,
-    prompt: (f) => `You are filling in the Expectation Setting Canvas section of an ESDS Client Communication Framework document for a real professional engagement.
+    prompt: (f) => `You are filling in the SOP Sign-off table of an ESDS PMO SOP document.
+The user has provided the following details:
+- Organisation: ${f.org_name}
+- PMO Lead: ${f.pmo_lead}
+- Executive Sponsor / MD: ${f.exec_sponsor}
+- Board Chair: ${f.board_chair}
+- Head of Delivery: ${f.head_delivery}
+- Sign-off Date: ${f.signoff_date || new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
 
-User's inputs:
-- Client / Account Name: ${f.account_name}
+Return ONLY a valid JSON object with exactly these keys. No markdown, no extra text.
+{"pmo_lead":"<full name>","exec_sponsor":"<full name>","board_chair":"<full name>","head_delivery":"<full name>","signoff_date":"<date e.g. 15 Jun 2026>"}`,
+  },
+
+  /* ── 2. Risk Register — FREE (xlsx, exceljs) ─────────────────────────────── */
+  'risk-register': {
+    name: 'Risk Register — Simplified',
+    file: 'Risk_Register_Simplified_Blank__1_.xlsx',
+    ext:  'xlsx',
+    pro:  false,
+    useExceljs: true,
+    prompt: (f) => `You are filling in a Risk Register for a real project management engagement.
+
+Project details:
+- Project Name: ${f.project_name}
+- Team / Group: ${f.team_name}
+- Industry: ${f.industry || 'IT / Technology'}
+- Project description: ${f.project_description}
+
+Generate exactly 10 realistic, specific risks for this project. Use professional project management language.
+
+Return ONLY a valid JSON array with exactly 10 objects. No markdown, no extra text. Each object has these keys:
+[
+  {
+    "risk_id": "R-001",
+    "description": "<specific risk description>",
+    "category": "<one of: Schedule | Budget | Technical | Resource | Stakeholder | Compliance | Operational>",
+    "probability": "<one of: Low | Medium | High>",
+    "impact": "<one of: Low | Medium | High>",
+    "response_strategy": "<one of: Mitigate | Accept | Transfer | Avoid>",
+    "response_action": "<specific action to take>",
+    "owner": "<role responsible e.g. PMO Lead>",
+    "residual_risk": "<one of: Low | Medium | High>"
+  }
+]`,
+  },
+
+  /* ── 3. Project Charter — PRO ────────────────────────────────────────────── */
+  'charter': {
+    name: 'Project Charter Template',
+    file: 'Project_Charter_Template.docx',
+    ext:  'docx',
+    pro:  true,
+    prompt: (f) => `You are filling in a Project Charter document for a real professional engagement.
+
+User inputs:
+- Project Title: ${f.project_title}
+- Executive Sponsor: ${f.sponsor}
+- Project Lead: ${f.project_lead}
+- Budget: ${f.budget || 'TBD'}
+- Start Date: ${f.start_date || 'TBD'}
+- End Date: ${f.end_date || 'TBD'}
+- Problem / Opportunity Statement: ${f.problem_statement}
+- High-level Goal: ${f.goal_statement}
+
+Write professional, concise project management language. No markdown formatting — use plain text.
+Use \\n to separate bullet items where needed.
+
+Return ONLY a valid JSON object with exactly these keys. No markdown fences, no extra text.
+{
+  "project_description": "<2-3 sentence project description>",
+  "business_impact": "<Why leadership should fund this — quantify if possible>",
+  "current_state": "<What is the current situation / pain>",
+  "desired_state": "<What does success look like after the project>",
+  "scope": "<Key in-scope deliverables, separated by \\n>",
+  "out_of_scope": "<Clear out-of-scope items, separated by \\n>",
+  "risk_1": "<Top risk #1 — specific and actionable>",
+  "risk_2": "<Top risk #2>",
+  "risk_3": "<Top risk #3>",
+  "dependencies": "<Key external dependencies, separated by \\n>",
+  "smart_goal": "<SMART goal — Specific, Measurable, Achievable, Relevant, Time-bound>",
+  "stage1_status": "Planned",
+  "stage1_date": "<target date for Assess phase>",
+  "stage1_owner": "<role>",
+  "stage2_status": "Planned",
+  "stage2_date": "<target date for Build phase>",
+  "stage2_owner": "<role>",
+  "stage3_status": "Planned",
+  "stage3_date": "<target date for Launch phase>",
+  "stage3_owner": "<role>",
+  "stage4_status": "Planned",
+  "stage4_date": "<target date for Evaluate phase>",
+  "stage4_owner": "<role>"
+}`,
+  },
+
+  /* ── 4. Client Empathy Map — PRO ─────────────────────────────────────────── */
+  'empathy-map': {
+    name: 'Client Empathy Map (A3 Printable)',
+    file: 'Client_Empathy_Map_A3_Printable_1.docx',
+    ext:  'docx',
+    pro:  true,
+    prompt: (f) => `You are filling in a Client Empathy Map for a project management engagement.
+
+User inputs:
+- Account / Client Name: ${f.account_name}
 - Project / Engagement: ${f.project_name}
-- Date: ${f.date || new Date().toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' })}
-- Deliverables (user wrote): ${f.will_deliver_raw}
-- Out of scope (user wrote): ${f.will_not_deliver_raw}
-- Needs from client (user wrote): ${f.need_from_client_raw}
+- Client type: ${f.client_type || 'Enterprise'}
+- Primary goals (user wrote): ${f.primary_goal}
+- Primary fears (user wrote): ${f.primary_fear}
+- Success metric (user wrote): ${f.success_metric || 'Project delivered on time and within budget'}
 
-Write professional, concise project management language. Use short bullet lines (no markdown bullets — use plain newlines between items). Be specific — do not be generic.
+Write from the client's perspective. Be specific and insightful. 1-2 sentences per field.
+Use plain text — no markdown, no bullet dashes.
 
-Return ONLY a valid JSON object with exactly these keys. No markdown fences, no extra text. Use \\n between bullet items (not markdown dashes).
+Return ONLY a valid JSON object with exactly these keys. No markdown fences, no extra text.
+{
+  "account_name": "${f.account_name}",
+  "project_name": "${f.project_name}",
+  "date_created": "<today's date e.g. 30 May 2026>",
+  "first_use_date": "<recommended first review date, 1 week from today>",
+  "q1_operational_goal": "<specific operational business outcome they need>",
+  "q1_compliance_goal": "<regulatory or compliance objective>",
+  "q1_unspoken_goal": "<political or career goal they won't say out loud>",
+  "q2_operational_fear": "<their biggest operational fear>",
+  "q2_career_fear": "<career or reputational risk they carry>",
+  "q2_worst_case": "<worst-case scenario if this project fails>",
+  "q3_business_metric": "<the metric they'll report to leadership>",
+  "q3_audit_signal": "<audit or compliance signal they watch>",
+  "q3_unspoken_kpi": "<their real, unstated success measure>",
+  "q3_md_report": "<what they would say to their MD if asked how it's going>",
+  "q4_hidden_influencer": "<person with real influence not in our meetings>",
+  "q4_regulatory_body": "<relevant regulator or oversight body>",
+  "q4_fastest_escalator": "<who escalates fastest when unhappy>"
+}`,
+  },
 
-{"account_name":"<exact client name>","date":"<date e.g. 15 Jun 2026>","will_deliver":"<SLA commitments and deliverables, items separated by \\n>","will_not_deliver":"<out-of-scope items, items separated by \\n>","need_from_client":"<what ESDS needs from client, items separated by \\n>","consequences":"<escalation path and remediation, items separated by \\n>"}`,
+  /* ── 5. Stakeholder Mapping — PRO ────────────────────────────────────────── */
+  'stakeholder-mapping': {
+    name: 'SmartCity Stakeholder Mapping Template',
+    file: 'SmartCity_Stakeholder_Mapping_Blank_Template.docx',
+    ext:  'docx',
+    pro:  true,
+    prompt: (f) => `You are filling in a SmartCity Stakeholder Mapping document.
+
+User inputs:
+- Project Name: ${f.project_name}
+- City / Location: ${f.city_location}
+- Contract Value: ${f.contract_value || 'TBD'}
+- Timeline: ${f.timeline || 'TBD'}
+- Our Role: ${f.our_role}
+- Key Challenge: ${f.key_challenge || 'Multi-stakeholder alignment and delivery coordination'}
+
+Write professional, concise project management language. For Power/Interest/Risk use short phrases (e.g. "High / Decision-maker", "Medium / Key approver", "Low risk — aligned"). No markdown.
+
+Return ONLY a valid JSON object with exactly these keys. No markdown fences, no extra text.
+{
+  "project_name": "${f.project_name}",
+  "city_location": "${f.city_location}",
+  "timeline": "${f.timeline || 'TBD'}",
+  "project_scenario": "<one-line project scenario description>",
+  "city_population": "<city population estimate>",
+  "project_scope": "<3-4 line project scope summary>",
+  "our_role": "${f.our_role}",
+  "critical_success_factor": "<the single most critical success factor>",
+  "key_risk_flag": "<the key risk or lesson for this type of project>",
+  "spv_power": "<power level>", "spv_interest": "<interest level>", "spv_risk": "<risk level>",
+  "municipal_comm_power": "<>", "municipal_comm_interest": "<>", "municipal_comm_risk": "<>",
+  "cm_office_power": "<>", "cm_office_interest": "<>", "cm_office_risk": "<>",
+  "state_it_power": "<>", "state_it_interest": "<>", "state_it_risk": "<>",
+  "mohua_power": "<>", "mohua_interest": "<>", "mohua_risk": "<>",
+  "finance_audit_power": "<>", "finance_audit_interest": "<>", "finance_audit_risk": "<>",
+  "discom_power": "<>", "discom_interest": "<>", "discom_risk": "<>",
+  "pwd_power": "<>", "pwd_interest": "<>", "pwd_risk": "<>",
+  "ward_councillors_power": "<>", "ward_councillors_interest": "<>", "ward_councillors_risk": "<>",
+  "citizens_power": "<>", "citizens_interest": "<>", "citizens_risk": "<>",
+  "media_power": "<>", "media_interest": "<>", "media_risk": "<>",
+  "delivery_team_power": "<>", "delivery_team_interest": "<>", "delivery_team_risk": "<>"
+}`,
   },
 
 };
@@ -118,37 +282,46 @@ exports.handler = async (event) => {
 
   let aiData;
   try {
-    const client   = new Anthropic({ apiKey: ANTHROPIC_KEY });
-    const message  = await client.messages.create({
+    const client  = new Anthropic({ apiKey: ANTHROPIC_KEY });
+    const message = await client.messages.create({
       model:      'claude-haiku-4-5-20251001',
-      max_tokens: 1024,
+      max_tokens: 2048,
       messages:   [{ role: 'user', content: tpl.prompt(formData) }],
     });
-    const raw      = message.content[0].text.trim();
-    const jsonStr  = raw.replace(/^```json?\s*/i, '').replace(/\s*```$/, '').trim();
-    aiData         = JSON.parse(jsonStr);
+    const raw     = message.content[0].text.trim();
+    const jsonStr = raw.replace(/^```json?\s*/i, '').replace(/\s*```$/, '').trim();
+    aiData        = JSON.parse(jsonStr);
   } catch (e) {
     return { statusCode: 500, headers: { ...cors, 'Content-Type': 'application/json' }, body: JSON.stringify({ error: 'AI generation failed: ' + e.message }) };
   }
 
-  /* ── 6. Fetch filled placeholder template from static CDN ── */
+  /* ── 6. Fetch template from static CDN ── */
   const siteUrl = (process.env.URL || 'http://localhost:8888').replace(/\/$/, '');
+  /* Risk Register uses original xlsx; others use filled placeholder docx */
+  const templatePath = tpl.useExceljs
+    ? `/templates/${tpl.file}`
+    : `/templates/filled/${tpl.file}`;
+
   let templateBuffer;
   try {
-    const tplRes = await fetch(`${siteUrl}/templates/filled/${tpl.file}`);
+    const tplRes = await fetch(`${siteUrl}${templatePath}`);
     if (!tplRes.ok) throw new Error(`HTTP ${tplRes.status}`);
     templateBuffer = Buffer.from(await tplRes.arrayBuffer());
   } catch (e) {
     return { statusCode: 500, headers: { ...cors, 'Content-Type': 'application/json' }, body: JSON.stringify({ error: 'Template file unavailable: ' + e.message }) };
   }
 
-  /* ── 7. Fill template with docxtemplater ── */
+  /* ── 7. Fill template ── */
   let outputBuffer;
   try {
-    const zip = new PizZip(templateBuffer);
-    const doc = new Docxtemplater(zip, { paragraphLoop: true, linebreaks: true });
-    doc.render(aiData);
-    outputBuffer = doc.getZip().generate({ type: 'nodebuffer' });
+    if (tpl.useExceljs) {
+      outputBuffer = await fillExcelRiskRegister(templateBuffer, formData, aiData);
+    } else {
+      const zip = new PizZip(templateBuffer);
+      const doc = new Docxtemplater(zip, { paragraphLoop: true, linebreaks: true });
+      doc.render(aiData);
+      outputBuffer = doc.getZip().generate({ type: 'nodebuffer' });
+    }
   } catch (e) {
     return { statusCode: 500, headers: { ...cors, 'Content-Type': 'application/json' }, body: JSON.stringify({ error: 'Template fill error: ' + e.message }) };
   }
@@ -163,8 +336,8 @@ exports.handler = async (event) => {
         'Content-Type': 'application/json', 'Prefer': 'return=minimal',
       },
       body: JSON.stringify({
-        generations_used:      currentUsed + 1,
-        generations_reset_at:  (!resetAt || now >= resetAt)
+        generations_used:     currentUsed + 1,
+        generations_reset_at: (!resetAt || now >= resetAt)
           ? nextMonth.toISOString()
           : profile.generations_reset_at,
       }),
@@ -189,8 +362,8 @@ exports.handler = async (event) => {
   } catch (_) {}
 
   /* ── 10. Return filled file ── */
-  const outFilename   = `${tpl.name.replace(/[^a-z0-9\s]/gi, '').trim().replace(/\s+/g, '_')}.${tpl.ext}`;
-  const contentType   = tpl.ext === 'xlsx'
+  const outFilename = `${tpl.name.replace(/[^a-z0-9\s]/gi, '').trim().replace(/\s+/g, '_')}.${tpl.ext}`;
+  const contentType = tpl.ext === 'xlsx'
     ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     : 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
 
@@ -202,7 +375,51 @@ exports.handler = async (event) => {
       'Content-Disposition': `attachment; filename="${outFilename}"`,
       'X-Generations-Used':  String(currentUsed + 1),
     },
-    body:           outputBuffer.toString('base64'),
+    body:            outputBuffer.toString('base64'),
     isBase64Encoded: true,
   };
 };
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   EXCEL HELPER — fills Risk Register xlsx with AI risk data
+   Columns: A=Risk ID, B=Description, C=Category, D=Probability, E=Impact,
+            F=Score (leave formula), G=Response Strategy, H=Response Action,
+            I=Owner, J=Residual Risk
+   Data rows: 5 – 14 (10 risks)
+───────────────────────────────────────────────────────────────────────────── */
+async function fillExcelRiskRegister(templateBuffer, formData, risks) {
+  const wb = new ExcelJS.Workbook();
+  await wb.xlsx.load(templateBuffer);
+
+  const ws = wb.worksheets[0];
+  if (!ws) throw new Error('No worksheet found in Risk Register template');
+
+  /* Write project header info into row 3 — cells vary per template */
+  try {
+    ws.getCell('A3').value = formData.team_name || formData.project_name || '';
+    ws.getCell('F3').value = formData.project_name || '';
+  } catch (_) {}
+
+  const COLS = ['A','B','C','D','E','F','G','H','I','J'];
+  const START_ROW = 5;
+
+  const riskArray = Array.isArray(risks) ? risks : [];
+  riskArray.slice(0, 15).forEach((r, idx) => {
+    const row = START_ROW + idx;
+    try {
+      ws.getCell(`A${row}`).value = r.risk_id      || `R-${String(idx + 1).padStart(3, '0')}`;
+      ws.getCell(`B${row}`).value = r.description  || '';
+      ws.getCell(`C${row}`).value = r.category     || '';
+      ws.getCell(`D${row}`).value = r.probability  || '';
+      ws.getCell(`E${row}`).value = r.impact       || '';
+      /* F = Score — leave existing formula, don't overwrite */
+      ws.getCell(`G${row}`).value = r.response_strategy || '';
+      ws.getCell(`H${row}`).value = r.response_action   || '';
+      ws.getCell(`I${row}`).value = r.owner             || '';
+      ws.getCell(`J${row}`).value = r.residual_risk     || '';
+    } catch (_) {}
+  });
+
+  const buf = await wb.xlsx.writeBuffer();
+  return Buffer.from(buf);
+}
