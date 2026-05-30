@@ -1,0 +1,11 @@
+{
+  "name": "pm-toolkit-functions",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.52.0",
+    "docxtemplater": "^3.46.0",
+    "exceljs": "^4.4.0",
+    "pizzip": "^3.1.7"
+  }
+}

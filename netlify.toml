@@ -2,6 +2,10 @@
   publish = "public"
   functions = "netlify/functions"
 
+[functions]
+  node_bundler = "zisi"
+  external_node_modules = ["docxtemplater", "pizzip", "exceljs", "@anthropic-ai/sdk"]
+
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/:splat"
