@@ -125,10 +125,25 @@
   <main class="dash-main">
 
     <!-- Header -->
-    <div class="dash-section-title" id="form-section-title">Download PM Templates</div>
-    <p class="dash-section-sub" id="dash-sub">
-      Ready-to-use professional project management templates. Click any template to download.
+    <div class="dash-section-title">Download PM Templates</div>
+    <p class="dash-section-sub">
+      Fill in your project details — AI builds the document in your template's exact format, ready to download.
     </p>
+
+    <!-- Usage bar (free users only) -->
+    <div class="usage-bar-wrap" id="usage-bar" style="display:none;">
+      <div class="usage-info">
+        <p><strong id="usage-text">0 / 5</strong> generations used this month</p>
+        <div class="usage-track">
+          <div class="usage-fill" id="usage-fill" style="width:0%"></div>
+        </div>
+      </div>
+      <div class="usage-cta">
+        <button class="btn-upgrade" style="padding:8px 16px; font-size:.82rem;" onclick="showUpgradeModal('usage')">
+          Upgrade for unlimited
+        </button>
+      </div>
+    </div>
 
     <!-- Template grid (rendered by JS) -->
     <div class="template-grid" id="template-grid"></div>
@@ -138,9 +153,58 @@
 
 
 <!-- ════════════════════════════════════════
+     FILL FORM MODAL
+════════════════════════════════════════ -->
+<div id="fill-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.65); z-index:200; align-items:center; justify-content:center; padding:20px;">
+  <div id="fill-modal-inner" style="
+    background:#0a1628;
+    border:1px solid rgba(255,255,255,.1);
+    border-radius:18px;
+    width:100%;
+    max-width:580px;
+    max-height:90vh;
+    overflow-y:auto;
+    box-shadow:0 24px 64px rgba(0,0,0,.6);
+    color:#f1f5f9;
+  ">
+    <!-- Modal header -->
+    <div style="display:flex; align-items:center; gap:14px; padding:24px 28px 20px; border-bottom:1px solid rgba(255,255,255,.08);">
+      <div id="fill-modal-icon" style="font-size:1.8rem;">💬</div>
+      <div style="flex:1;">
+        <div style="font-size:.72rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:#3b82f6; margin-bottom:2px;">Fill & Download</div>
+        <div id="fill-modal-title" style="font-size:1.05rem; font-weight:800; color:#f1f5f9;">Client Communication Framework</div>
+      </div>
+      <button onclick="closeFillModal()" style="background:rgba(255,255,255,.08); border:none; border-radius:8px; width:34px; height:34px; font-size:1.1rem; color:#94a3b8; cursor:pointer; flex-shrink:0;">✕</button>
+    </div>
+
+    <!-- Form container (swapped by JS per template) -->
+    <div id="fill-form-container" style="padding:24px 28px;">
+      <!-- injected by renderForm() -->
+    </div>
+
+    <!-- Alert -->
+    <div id="fill-alert" style="display:none; margin:0 28px 8px; padding:12px 16px; border-radius:10px; font-size:.88rem; font-weight:600;"></div>
+
+    <!-- Footer -->
+    <div style="padding:8px 28px 24px; display:flex; align-items:center; gap:12px;">
+      <button id="fill-submit-btn" class="btn-generate" onclick="submitFillForm()" style="flex:1; justify-content:center;">
+        <span id="fill-btn-spinner" style="display:none; width:16px; height:16px; border:2px solid rgba(255,255,255,.25); border-top-color:#fff; border-radius:50%; animation:spin .7s linear infinite;"></span>
+        <span id="fill-btn-text">✨ Generate & Download</span>
+      </button>
+      <button onclick="closeFillModal()" style="padding:13px 20px; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.1); border-radius:10px; color:#94a3b8; font-family:var(--font); font-size:.95rem; font-weight:600; cursor:pointer;">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<style>
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+
+
+<!-- ════════════════════════════════════════
      UPGRADE MODAL  (Razorpay — unchanged)
 ════════════════════════════════════════ -->
-<div id="upgrade-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:200; align-items:center; justify-content:center;">
+<div id="upgrade-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:300; align-items:center; justify-content:center;">
   <div class="upgrade-modal-inner">
     <div style="font-size:2.2rem; margin-bottom:12px;">🚀</div>
     <h2>Upgrade to Pro</h2>
@@ -156,7 +220,7 @@
       <li><span class="check">✓</span> Project Charter Template</li>
       <li><span class="check">✓</span> Client Empathy Map (A3 Printable)</li>
       <li><span class="check">✓</span> SmartCity Stakeholder Mapping</li>
-      <li><span class="check">✓</span> Priority access to new templates</li>
+      <li><span class="check">✓</span> Unlimited AI generations</li>
     </ul>
 
     <button class="btn btn-primary" style="width:100%; padding:14px; font-size:1rem;" onclick="handleUpgrade()">
@@ -166,10 +230,8 @@
   </div>
 </div>
 
-<!-- Download success toast -->
-<div id="gen-toast" style="display:none;" class="gen-toast">
-  ⬇ Template downloaded!
-</div>
+<!-- Toast -->
+<div id="gen-toast" style="display:none;" class="gen-toast"></div>
 
 <!-- Supabase -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.0/dist/umd/supabase.min.js"></script>
@@ -178,314 +240,505 @@
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
 <script>
-  /* ════════════════════════════════════════════════════════
-     FIXED DOWNLOADABLE TEMPLATES
-     3 Free + 3 Pro. Files live in /public/templates/.
-  ════════════════════════════════════════════════════════ */
-  const TEMPLATES = {
-    'pmo-sop': {
-      name: 'PMO SOP — Hybrid Governance Framework',
-      icon: '🏛️',
-      desc: 'Standard operating procedure for running a hybrid (agile + waterfall) project governance model.',
-      file: 'templates/PMO-SOP-006-V1_0-Hybrid_Governance_Framework__1_.docx',
-      pro:  false,
-    },
-    'client-comms': {
-      name: 'Client Communication Framework',
-      icon: '💬',
-      desc: 'A structured framework to plan and manage clear, consistent client communication.',
-      file: 'templates/Client_Communication_Framework.docx',
-      pro:  false,
-    },
-    'risk-register': {
-      name: 'Risk Register — Simplified',
-      icon: '⚠️',
-      desc: 'A clean, ready-to-fill Excel risk register to track risks, impact and mitigation.',
-      file: 'templates/Risk_Register_Simplified_Blank__1_.xlsx',
-      pro:  false,
-    },
-    'charter': {
-      name: 'Project Charter Template',
-      icon: '📋',
-      desc: 'A complete project charter template to formally kick off and align any project.',
-      file: 'templates/Project_Charter_Template.docx',
-      pro:  true,
-    },
-    'empathy-map': {
-      name: 'Client Empathy Map (A3 Printable)',
-      icon: '🧠',
-      desc: 'An A3 printable empathy map to deeply understand your client’s needs and pains.',
-      file: 'templates/Client_Empathy_Map_A3_Printable_1.docx',
-      pro:  true,
-    },
-    'stakeholder-mapping': {
-      name: 'SmartCity Stakeholder Mapping Template',
-      icon: '👥',
-      desc: 'A stakeholder mapping template for large, complex multi-stakeholder projects.',
-      file: 'templates/SmartCity_Stakeholder_Mapping_Blank_Template.docx',
-      pro:  true,
-    },
-  };
+/* ════════════════════════════════════════════════════════
+   TEMPLATE CONFIG
+   hasForm: true  → AI-fill form opens first
+   hasForm: false → direct download (not yet built)
+════════════════════════════════════════════════════════ */
+const TEMPLATES = {
+  'pmo-sop': {
+    name: 'PMO SOP — Hybrid Governance Framework',
+    icon: '🏛️',
+    desc: 'Standard operating procedure for running a hybrid (agile + waterfall) project governance model.',
+    file: 'templates/PMO-SOP-006-V1_0-Hybrid_Governance_Framework__1_.docx',
+    pro:  false,
+    hasForm: false,
+  },
+  'client-comms': {
+    name: 'Client Communication Framework',
+    icon: '💬',
+    desc: 'Fill in your account details — AI builds the Expectation Canvas in the ESDS template format.',
+    file: 'templates/Client_Communication_Framework.docx',
+    pro:  false,
+    hasForm: true,
+  },
+  'risk-register': {
+    name: 'Risk Register — Simplified',
+    icon: '⚠️',
+    desc: 'A clean, ready-to-fill Excel risk register to track risks, impact and mitigation.',
+    file: 'templates/Risk_Register_Simplified_Blank__1_.xlsx',
+    pro:  false,
+    hasForm: false,
+  },
+  'charter': {
+    name: 'Project Charter Template',
+    icon: '📋',
+    desc: 'A complete project charter template to formally kick off and align any project.',
+    file: 'templates/Project_Charter_Template.docx',
+    pro:  true,
+    hasForm: false,
+  },
+  'empathy-map': {
+    name: 'Client Empathy Map (A3 Printable)',
+    icon: '🧠',
+    desc: 'An A3 printable empathy map to deeply understand your client\'s needs and pains.',
+    file: 'templates/Client_Empathy_Map_A3_Printable_1.docx',
+    pro:  true,
+    hasForm: false,
+  },
+  'stakeholder-mapping': {
+    name: 'SmartCity Stakeholder Mapping Template',
+    icon: '👥',
+    desc: 'A stakeholder mapping template for large, complex multi-stakeholder projects.',
+    file: 'templates/SmartCity_Stakeholder_Mapping_Blank_Template.docx',
+    pro:  true,
+    hasForm: false,
+  },
+};
 
-  let currentUser = null;
-  let userProfile = null;
+/* ── Per-template form definitions ── */
+const FORMS = {
+  'client-comms': {
+    fields: [
+      { id: 'account_name',       label: 'Client / Account Name',    type: 'text',     required: true,  placeholder: 'e.g. State Bank of India' },
+      { id: 'project_name',       label: 'Project / Engagement Name', type: 'text',     required: true,  placeholder: 'e.g. Core Banking Migration — Phase 2' },
+      { id: 'date',               label: 'Date',                     type: 'date',     required: false, placeholder: '' },
+      { id: 'will_deliver_raw',   label: 'What we WILL deliver',      type: 'textarea', required: true,  placeholder: 'List your key commitments, SLAs, deliverables...' },
+      { id: 'will_not_deliver_raw', label: 'What we will NOT deliver', type: 'textarea', required: true,  placeholder: 'List out-of-scope items clearly...' },
+      { id: 'need_from_client_raw', label: 'What we need FROM the client', type: 'textarea', required: true, placeholder: 'Access, approvals, data, stakeholder availability...' },
+    ],
+  },
+};
 
-  /* ── Init ── */
-  async function init() {
-    try {
-      const { data: { session }, error } = await supabase.auth.getSession();
-      if (error || !session) { window.location.href = 'login.html'; return; }
-      currentUser = session.user;
-      await loadProfile();
-      renderTemplates();
-    } catch (e) {
-      window.location.href = 'login.html';
-    }
+let currentUser  = null;
+let userProfile  = null;
+let activeFillKey = null;
+
+/* ════════════════════════════════════════════════════════
+   INIT
+════════════════════════════════════════════════════════ */
+async function init() {
+  try {
+    const { data: { session }, error } = await supabase.auth.getSession();
+    if (error || !session) { window.location.href = 'login.html'; return; }
+    currentUser = session.user;
+    await loadProfile();
+    renderTemplates();
+    renderUsageBar();
+  } catch (e) {
+    window.location.href = 'login.html';
   }
+}
 
-  /* ── Load profile from DB (tier + name only) ── */
-  async function loadProfile() {
-    let { data, error } = await supabase
+/* ── Load profile ── */
+async function loadProfile() {
+  let { data, error } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', currentUser.id)
+    .single();
+
+  if (error || !data) {
+    const name = currentUser.user_metadata?.full_name || currentUser.email.split('@')[0];
+    const { data: created } = await supabase
       .from('profiles')
-      .select('*')
-      .eq('id', currentUser.id)
-      .single();
+      .upsert({ id: currentUser.id, full_name: name })
+      .select().single();
+    data = created;
+  }
 
-    if (error || !data) {
-      const name = currentUser.user_metadata?.full_name || currentUser.email.split('@')[0];
-      const { data: created } = await supabase
-        .from('profiles')
-        .upsert({ id: currentUser.id, full_name: name })
-        .select().single();
-      data = created;
+  userProfile = data || { tier: 'free', generations_used: 0, generations_reset_at: null };
+
+  const displayName = userProfile.full_name || currentUser.email.split('@')[0];
+  document.getElementById('user-avatar').textContent = displayName.charAt(0).toUpperCase();
+  document.getElementById('user-name').textContent   = displayName.split(' ')[0];
+
+  if (userProfile.tier === 'pro') {
+    document.getElementById('upgrade-card').style.display = 'none';
+    document.getElementById('nav-pro-pill').style.display  = 'inline-flex';
+    removeSidebarProTags();
+  }
+}
+
+/* ── Usage bar ── */
+function renderUsageBar() {
+  if (userProfile?.tier === 'pro') return;
+  const bar  = document.getElementById('usage-bar');
+  const now  = new Date();
+  const resetAt = userProfile?.generations_reset_at ? new Date(userProfile.generations_reset_at) : null;
+  const used = (!resetAt || now >= resetAt) ? 0 : (userProfile?.generations_used || 0);
+  const pct  = Math.min(100, (used / 5) * 100);
+
+  document.getElementById('usage-text').textContent = `${used} / 5`;
+
+  const fill = document.getElementById('usage-fill');
+  fill.style.width = pct + '%';
+  fill.className   = 'usage-fill' + (pct >= 100 ? ' danger' : pct >= 60 ? ' warn' : '');
+
+  bar.style.display = 'flex';
+}
+
+function removeSidebarProTags() {
+  document.querySelectorAll('#doc-nav .doc-plan-tag').forEach(tag => tag.remove());
+}
+
+/* ════════════════════════════════════════════════════════
+   RENDER TEMPLATE CARDS
+════════════════════════════════════════════════════════ */
+function renderTemplates() {
+  const isPro = userProfile?.tier === 'pro';
+  const grid  = document.getElementById('template-grid');
+
+  grid.innerHTML = Object.entries(TEMPLATES).map(([key, tpl]) => {
+    const locked   = tpl.pro && !isPro;
+    const tagClass = tpl.pro ? 'pro' : 'free';
+    const tagLabel = tpl.pro ? 'PRO'  : 'FREE';
+
+    let button;
+    if (locked) {
+      button = `<button class="btn-download is-locked" onclick="showUpgradeModal('pro-doc')">🔒 Upgrade to unlock</button>`;
+    } else if (tpl.hasForm) {
+      button = `<button class="btn-download" onclick="openFillModal('${key}')">✨ Fill &amp; Download</button>`;
+    } else {
+      button = `<button class="btn-download" onclick="handleDownload('${key}')">⬇ Download Template</button>`;
     }
 
-    userProfile = data || { tier: 'free' };
+    return `
+      <div class="template-card${locked ? ' card-locked' : ''}" id="tpl-${key}">
+        <div class="template-card-top">
+          <div class="template-icon">${tpl.icon}</div>
+          <span class="tpl-tag ${tagClass}">${tagLabel}</span>
+        </div>
+        <h3 class="template-name">${tpl.name}</h3>
+        <p class="template-desc">${tpl.desc}</p>
+        ${button}
+      </div>`;
+  }).join('');
+}
 
-    const displayName = userProfile.full_name || currentUser.email.split('@')[0];
-    document.getElementById('user-avatar').textContent = displayName.charAt(0).toUpperCase();
-    document.getElementById('user-name').textContent   = displayName.split(' ')[0];
+/* ════════════════════════════════════════════════════════
+   DIRECT DOWNLOAD (templates without a form)
+════════════════════════════════════════════════════════ */
+function handleDownload(key) {
+  const tpl   = TEMPLATES[key];
+  if (!tpl) return;
+  const isPro = userProfile?.tier === 'pro';
+  if (tpl.pro && !isPro) { showUpgradeModal('pro-doc'); return; }
 
-    if (userProfile.tier === 'pro') {
-      document.getElementById('upgrade-card').style.display = 'none';
-      document.getElementById('nav-pro-pill').style.display = 'inline-flex';
-      removeSidebarProTags();
+  const a = document.createElement('a');
+  a.href  = tpl.file;
+  a.download = tpl.file.split('/').pop();
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  showToast('⬇ Downloading: ' + tpl.name);
+}
+
+/* ════════════════════════════════════════════════════════
+   FILL FORM MODAL
+════════════════════════════════════════════════════════ */
+function openFillModal(key) {
+  const tpl  = TEMPLATES[key];
+  const form = FORMS[key];
+  if (!tpl || !form) return;
+
+  activeFillKey = key;
+  document.getElementById('fill-modal-icon').textContent  = tpl.icon;
+  document.getElementById('fill-modal-title').textContent = tpl.name;
+  hideFillAlert();
+  setFillLoading(false);
+
+  /* Build form HTML */
+  const fieldsHtml = form.fields.map(f => {
+    const req = f.required ? ' *' : '';
+    if (f.type === 'textarea') {
+      return `<div class="field field-full" style="margin-bottom:16px;">
+        <label for="ff_${f.id}">${f.label}${req}</label>
+        <textarea id="ff_${f.id}" placeholder="${f.placeholder}" style="min-height:80px;"></textarea>
+      </div>`;
     }
+    return `<div class="field" style="margin-bottom:16px;">
+      <label for="ff_${f.id}">${f.label}${req}</label>
+      <input type="${f.type}" id="ff_${f.id}" placeholder="${f.placeholder}"
+             ${f.type === 'date' ? `value="${new Date().toISOString().split('T')[0]}"` : ''} />
+    </div>`;
+  }).join('');
+
+  document.getElementById('fill-form-container').innerHTML = `
+    <p style="font-size:.85rem; color:#64748b; margin-bottom:20px; line-height:1.5;">
+      Fill in your project details below. AI will expand them into professional PM language
+      and insert them into the <strong style="color:#94a3b8;">${tpl.name}</strong> template.
+    </p>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:0 20px;">
+      ${fieldsHtml}
+    </div>`;
+
+  /* Make textareas and full-width fields span both columns */
+  document.querySelectorAll('#fill-form-container .field-full').forEach(el => {
+    el.style.gridColumn = '1 / -1';
+  });
+
+  document.getElementById('fill-modal').style.display = 'flex';
+  /* Focus first input */
+  const first = document.querySelector('#fill-form-container input, #fill-form-container textarea');
+  if (first) setTimeout(() => first.focus(), 80);
+}
+
+function closeFillModal() {
+  document.getElementById('fill-modal').style.display = 'none';
+  activeFillKey = null;
+}
+
+/* Click backdrop to close */
+document.getElementById('fill-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeFillModal();
+});
+
+function showFillAlert(msg, type) {
+  const el = document.getElementById('fill-alert');
+  el.textContent = msg;
+  el.style.display = 'block';
+  el.style.background = type === 'error'
+    ? 'rgba(239,68,68,.12)' : 'rgba(34,197,94,.1)';
+  el.style.color = type === 'error' ? '#f87171' : '#4ade80';
+  el.style.border = `1px solid ${type === 'error' ? 'rgba(239,68,68,.25)' : 'rgba(34,197,94,.25)'}`;
+}
+function hideFillAlert() {
+  document.getElementById('fill-alert').style.display = 'none';
+}
+
+function setFillLoading(loading) {
+  const btn     = document.getElementById('fill-submit-btn');
+  const spinner = document.getElementById('fill-btn-spinner');
+  const txt     = document.getElementById('fill-btn-text');
+  btn.disabled       = loading;
+  spinner.style.display = loading ? 'inline-block' : 'none';
+  txt.textContent    = loading ? 'Generating…' : '✨ Generate & Download';
+}
+
+/* ── Submit fill form ── */
+async function submitFillForm() {
+  const key  = activeFillKey;
+  const tpl  = TEMPLATES[key];
+  const form = FORMS[key];
+  if (!tpl || !form) return;
+
+  hideFillAlert();
+
+  /* Collect + validate */
+  const formData = {};
+  for (const f of form.fields) {
+    const el  = document.getElementById('ff_' + f.id);
+    const val = el ? el.value.trim() : '';
+    if (f.required && !val) {
+      showFillAlert(`Please fill in: ${f.label}`, 'error');
+      if (el) el.focus();
+      return;
+    }
+    formData[f.id] = val;
   }
 
-  function removeSidebarProTags() {
-    document.querySelectorAll('#doc-nav .doc-plan-tag').forEach(tag => tag.remove());
-  }
+  setFillLoading(true);
 
-  /* ── Render the template cards ── */
-  function renderTemplates() {
-    const isPro = userProfile?.tier === 'pro';
-    const grid  = document.getElementById('template-grid');
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) { window.location.href = 'login.html'; return; }
 
-    grid.innerHTML = Object.entries(TEMPLATES).map(([key, tpl]) => {
-      const locked   = tpl.pro && !isPro;
-      const tagClass = tpl.pro ? 'pro' : 'free';
-      const tagLabel = tpl.pro ? 'PRO' : 'FREE';
+    const res = await fetch('/api/fill-template', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ templateKey: key, formData, token: session.access_token }),
+    });
 
-      const button = locked
-        ? `<button class="btn-download is-locked" onclick="showUpgradeModal('pro-doc')">
-             🔒 Upgrade to unlock
-           </button>`
-        : `<button class="btn-download" onclick="handleDownload('${key}')">
-             ⬇ Download Template
-           </button>`;
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      const msg = err.error || 'Generation failed. Please try again.';
 
-      return `
-        <div class="template-card${locked ? ' card-locked' : ''}" id="tpl-${key}">
-          <div class="template-card-top">
-            <div class="template-icon">${tpl.icon}</div>
-            <span class="tpl-tag ${tagClass}">${tagLabel}</span>
-          </div>
-          <h3 class="template-name">${tpl.name}</h3>
-          <p class="template-desc">${tpl.desc}</p>
-          ${button}
-        </div>`;
-    }).join('');
-  }
+      /* Limit reached → offer upgrade */
+      if (res.status === 429) {
+        closeFillModal();
+        showUpgradeModal('limit');
+        return;
+      }
+      showFillAlert(msg, 'error');
+      return;
+    }
 
-  /* ── Download a template file ── */
-  function handleDownload(key) {
-    const tpl   = TEMPLATES[key];
-    if (!tpl) return;
-    const isPro = userProfile?.tier === 'pro';
-
-    /* Safety: Pro template, free user → upgrade prompt */
-    if (tpl.pro && !isPro) { showUpgradeModal('pro-doc'); return; }
-
-    /* Trigger the browser download */
-    const a = document.createElement('a');
-    a.href = tpl.file;
-    a.download = tpl.file.split('/').pop();
+    /* Trigger download from binary response */
+    const blob     = await res.blob();
+    const url      = URL.createObjectURL(blob);
+    const a        = document.createElement('a');
+    const filename = res.headers.get('Content-Disposition')?.match(/filename="([^"]+)"/)?.[1]
+                     || `${tpl.name.replace(/\s+/g, '_')}.docx`;
+    a.href     = url;
+    a.download = filename;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
+    URL.revokeObjectURL(url);
 
-    showToast(tpl.name);
-  }
-
-  /* ── Sidebar click → scroll to & highlight the card ── */
-  function scrollToTemplate(key) {
-    const card = document.getElementById('tpl-' + key);
-    if (card) {
-      card.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      card.classList.add('card-flash');
-      setTimeout(() => card.classList.remove('card-flash'), 1200);
-    }
-    document.getElementById('sidebar').classList.remove('open');
-  }
-
-  /* ════════════════════════════════════════════════════════
-     UPGRADE MODAL + RAZORPAY  (unchanged payment logic)
-  ════════════════════════════════════════════════════════ */
-  function showUpgradeModal(reason) {
-    const msg = {
-      'pro-doc': 'Yeh template sirf Pro users ke liye hai. Pro pe upgrade karke saare premium templates unlock karo.',
-      'sidebar': 'Unlock all 6 premium PM templates for download.',
-    };
-    document.getElementById('upgrade-reason').textContent =
-      msg[reason] || 'Unlock all 6 premium PM templates for download.';
-    document.getElementById('upgrade-modal').style.display = 'flex';
-  }
-  function closeUpgradeModal() { document.getElementById('upgrade-modal').style.display = 'none'; }
-
-  async function handleUpgrade() {
-    const upgradeBtn = document.querySelector('#upgrade-modal .btn.btn-primary');
-    upgradeBtn.disabled = true;
-    upgradeBtn.textContent = '⏳ Preparing payment…';
-
-    try {
-      /* Step 1: Create Razorpay order on server */
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) { window.location.href = 'login.html'; return; }
-
-      const orderRes = await fetch('/api/create-order', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-      });
-      if (!orderRes.ok) {
-        const err = await orderRes.json().catch(() => ({}));
-        alert('Could not start payment: ' + (err.error || 'Server error'));
-        return;
+    /* Update usage counter from response header */
+    const usedNow = parseInt(res.headers.get('X-Generations-Used') || '0', 10);
+    if (userProfile && userProfile.tier !== 'pro') {
+      userProfile.generations_used = usedNow;
+      /* Approximate reset: set to next month start if not set */
+      if (!userProfile.generations_reset_at) {
+        const nm = new Date(); nm.setDate(1); nm.setMonth(nm.getMonth() + 1);
+        userProfile.generations_reset_at = nm.toISOString();
       }
-      const orderData = await orderRes.json();
-
-      /* Step 2: Open Razorpay checkout popup */
-      closeUpgradeModal();
-
-      const rzpOptions = {
-        key:         orderData.keyId,
-        amount:      orderData.amount,
-        currency:    orderData.currency,
-        order_id:    orderData.orderId,
-        name:        'PM Toolkit',
-        description: 'Pro Plan — ₹499/month',
-        prefill: {
-          name:  userProfile?.full_name || '',
-          email: currentUser?.email     || '',
-        },
-        theme: { color: '#2563eb' },
-        modal: {
-          ondismiss: () => {
-            upgradeBtn.disabled    = false;
-            upgradeBtn.textContent = 'Upgrade — ₹499/month →';
-          },
-        },
-        handler: async function(response) {
-          /* Step 3: Verify payment on server and upgrade account */
-          upgradeBtn.disabled    = true;
-          upgradeBtn.textContent = '⏳ Verifying payment…';
-
-          try {
-            const verifyRes = await fetch('/api/verify-payment', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                orderId:   response.razorpay_order_id,
-                paymentId: response.razorpay_payment_id,
-                signature: response.razorpay_signature,
-                token:     session.access_token,
-              }),
-            });
-
-            if (!verifyRes.ok) {
-              const err = await verifyRes.json().catch(() => ({}));
-              alert('Payment verification failed: ' + (err.error || 'Please contact support.'));
-              return;
-            }
-
-            /* Step 4: Payment verified — update local state and UI */
-            userProfile.tier = 'pro';
-            document.getElementById('upgrade-card').style.display = 'none';
-            document.getElementById('nav-pro-pill').style.display = 'inline-flex';
-            removeSidebarProTags();
-            renderTemplates();   /* re-render so Pro templates unlock */
-
-            /* Show success toast */
-            const t = document.getElementById('gen-toast');
-            t.textContent = '🎉 Welcome to Pro! All templates unlocked.';
-            t.style.display = 'block';
-            setTimeout(() => {
-              t.style.display = 'none';
-              t.textContent   = '⬇ Template downloaded!';
-            }, 4000);
-
-          } catch (e) {
-            alert('Verification error: ' + e.message);
-          } finally {
-            upgradeBtn.disabled    = false;
-            upgradeBtn.textContent = 'Upgrade — ₹499/month →';
-          }
-        },
-      };
-
-      const rzp = new Razorpay(rzpOptions);
-      rzp.open();
-
-    } catch (e) {
-      alert('Payment error: ' + e.message);
-      upgradeBtn.disabled    = false;
-      upgradeBtn.textContent = 'Upgrade — ₹499/month →';
+      renderUsageBar();
     }
+
+    closeFillModal();
+    showToast(`✅ ${tpl.name} — downloaded!`);
+
+  } catch (e) {
+    showFillAlert('Network error: ' + e.message, 'error');
+  } finally {
+    setFillLoading(false);
   }
+}
 
-  document.getElementById('upgrade-modal').addEventListener('click', function(e) {
-    if (e.target === this) closeUpgradeModal();
-  });
-
-  /* ── Toast ── */
-  function showToast(name) {
-    const t = document.getElementById('gen-toast');
-    t.textContent = name ? ('⬇ Downloading: ' + name) : '⬇ Template downloaded!';
-    t.style.display = 'block';
-    setTimeout(() => { t.style.display = 'none'; }, 3000);
+/* Sidebar click → scroll to card + flash */
+function scrollToTemplate(key) {
+  const card = document.getElementById('tpl-' + key);
+  if (card) {
+    card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    card.classList.add('card-flash');
+    setTimeout(() => card.classList.remove('card-flash'), 1200);
   }
+  document.getElementById('sidebar').classList.remove('open');
+}
 
-  /* ── Mobile sidebar ── */
-  function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
+/* ════════════════════════════════════════════════════════
+   UPGRADE MODAL + RAZORPAY  (payment logic unchanged)
+════════════════════════════════════════════════════════ */
+function showUpgradeModal(reason) {
+  const msg = {
+    'pro-doc': 'Yeh template sirf Pro users ke liye hai. Pro pe upgrade karke saare premium templates unlock karo.',
+    'sidebar': 'Unlock all 6 premium PM templates for download.',
+    'limit':   'Monthly generation limit reached (5/month on Free plan). Upgrade to Pro for unlimited generations.',
+    'usage':   'Upgrade to Pro for unlimited AI generations and all 6 premium templates.',
+  };
+  document.getElementById('upgrade-reason').textContent =
+    msg[reason] || 'Unlock all 6 premium PM templates.';
+  document.getElementById('upgrade-modal').style.display = 'flex';
+}
+function closeUpgradeModal() { document.getElementById('upgrade-modal').style.display = 'none'; }
 
-  /* ── Logout ── */
-  async function handleLogout() {
-    await supabase.auth.signOut();
-    window.location.href = 'login.html';
+async function handleUpgrade() {
+  const upgradeBtn = document.querySelector('#upgrade-modal .btn.btn-primary');
+  upgradeBtn.disabled = true;
+  upgradeBtn.textContent = '⏳ Preparing payment…';
+
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) { window.location.href = 'login.html'; return; }
+
+    const orderRes = await fetch('/api/create-order', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    if (!orderRes.ok) {
+      const err = await orderRes.json().catch(() => ({}));
+      alert('Could not start payment: ' + (err.error || 'Server error'));
+      return;
+    }
+    const orderData = await orderRes.json();
+
+    closeUpgradeModal();
+
+    const rzpOptions = {
+      key:         orderData.keyId,
+      amount:      orderData.amount,
+      currency:    orderData.currency,
+      order_id:    orderData.orderId,
+      name:        'PM Toolkit',
+      description: 'Pro Plan — ₹499/month',
+      prefill: {
+        name:  userProfile?.full_name || '',
+        email: currentUser?.email     || '',
+      },
+      theme: { color: '#2563eb' },
+      modal: {
+        ondismiss: () => {
+          upgradeBtn.disabled    = false;
+          upgradeBtn.textContent = 'Upgrade — ₹499/month →';
+        },
+      },
+      handler: async function(response) {
+        upgradeBtn.disabled    = true;
+        upgradeBtn.textContent = '⏳ Verifying payment…';
+
+        try {
+          const verifyRes = await fetch('/api/verify-payment', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              orderId:   response.razorpay_order_id,
+              paymentId: response.razorpay_payment_id,
+              signature: response.razorpay_signature,
+              token:     session.access_token,
+            }),
+          });
+
+          if (!verifyRes.ok) {
+            const err = await verifyRes.json().catch(() => ({}));
+            alert('Payment verification failed: ' + (err.error || 'Please contact support.'));
+            return;
+          }
+
+          userProfile.tier = 'pro';
+          document.getElementById('upgrade-card').style.display = 'none';
+          document.getElementById('nav-pro-pill').style.display  = 'inline-flex';
+          document.getElementById('usage-bar').style.display     = 'none';
+          removeSidebarProTags();
+          renderTemplates();
+
+          showToast('🎉 Welcome to Pro! All templates unlocked.');
+
+        } catch (e) {
+          alert('Verification error: ' + e.message);
+        } finally {
+          upgradeBtn.disabled    = false;
+          upgradeBtn.textContent = 'Upgrade — ₹499/month →';
+        }
+      },
+    };
+
+    const rzp = new Razorpay(rzpOptions);
+    rzp.open();
+
+  } catch (e) {
+    alert('Payment error: ' + e.message);
+    upgradeBtn.disabled    = false;
+    upgradeBtn.textContent = 'Upgrade — ₹499/month →';
   }
+}
 
-  /* ── Start ── */
-  init();
+document.getElementById('upgrade-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeUpgradeModal();
+});
 
-  /* ════════════════════════════════════════════════════════
-     ⛔ OLD AI GENERATION (form + streaming) — DISABLED / BOXED.
-     The Anthropic serverless edge functions still exist in
-     /netlify/edge-functions/ (generate-document.js etc.) and
-     are untouched. The dashboard form UI + handleGenerate()
-     flow was removed here when we switched to fixed template
-     downloads. To bring AI back later, restore the form UI and
-     re-wire handleGenerate() → POST /api/generate-document.
-  ════════════════════════════════════════════════════════ */
+/* ── Toast ── */
+function showToast(msg) {
+  const t = document.getElementById('gen-toast');
+  t.textContent    = msg;
+  t.style.display  = 'block';
+  setTimeout(() => { t.style.display = 'none'; }, 3500);
+}
+
+/* ── Mobile sidebar ── */
+function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
+
+/* ── Logout ── */
+async function handleLogout() {
+  await supabase.auth.signOut();
+  window.location.href = 'login.html';
+}
+
+/* ── Start ── */
+init();
 </script>
 
 </body>
