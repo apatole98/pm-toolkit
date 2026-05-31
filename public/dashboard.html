@@ -52,13 +52,6 @@
       <ul class="sidebar-nav" id="doc-nav">
 
         <li>
-          <button onclick="scrollToTemplate('pmo-sop')">
-            <span class="sidebar-icon">🏛️</span>
-            PMO SOP
-          </button>
-        </li>
-
-        <li>
           <button onclick="scrollToTemplate('risk-register')">
             <span class="sidebar-icon">⚠️</span>
             Risk Register
@@ -69,7 +62,6 @@
           <button onclick="scrollToTemplate('charter')">
             <span class="sidebar-icon">📋</span>
             Project Charter
-            <span class="doc-plan-tag">Pro</span>
           </button>
         </li>
 
@@ -107,7 +99,7 @@
     <!-- Upgrade card (Free users only) -->
     <div class="sidebar-upgrade" id="upgrade-card">
       <h4>Upgrade to Pro</h4>
-      <p>Unlock all 5 AI-filled PM templates.</p>
+      <p>Unlock all 4 AI-filled PM templates.</p>
       <button class="btn-upgrade" onclick="showUpgradeModal('sidebar')">Upgrade — ₹499/mo</button>
     </div>
 
@@ -201,7 +193,7 @@
   <div class="upgrade-modal-inner">
     <div style="font-size:2.2rem; margin-bottom:12px;">🚀</div>
     <h2>Upgrade to Pro</h2>
-    <p id="upgrade-reason">Unlock all 5 premium PM templates with AI fill.</p>
+    <p id="upgrade-reason">Unlock all 4 PM templates with AI fill.</p>
 
     <div class="upgrade-price-box">
       <div class="price-amount">₹499 <span>/ month</span></div>
@@ -209,8 +201,7 @@
     </div>
 
     <ul class="upgrade-feature-list">
-      <li><span class="check">✓</span> All 5 AI-filled PM templates</li>
-      <li><span class="check">✓</span> Project Charter Template</li>
+      <li><span class="check">✓</span> All 4 AI-filled PM templates</li>
       <li><span class="check">✓</span> Client Empathy Map (A3 Printable)</li>
       <li><span class="check">✓</span> SmartCity Stakeholder Mapping</li>
       <li><span class="check">✓</span> Unlimited AI generations</li>
@@ -239,13 +230,6 @@
    hasForm: false → direct download (not yet built)
 ════════════════════════════════════════════════════════ */
 const TEMPLATES = {
-  'pmo-sop': {
-    name: 'PMO SOP — Hybrid Governance Framework',
-    icon: '🏛️',
-    desc: 'AI fills the SOP Sign-off table with your team details — download a ready-to-sign governance document.',
-    pro:  false,
-    hasForm: true,
-  },
   'risk-register': {
     name: 'Risk Register — Simplified',
     icon: '⚠️',
@@ -257,7 +241,7 @@ const TEMPLATES = {
     name: 'Project Charter Template',
     icon: '📋',
     desc: 'AI builds a complete project charter — scope, goals, risks, milestones — in your template\'s exact format.',
-    pro:  true,
+    pro:  false,
     hasForm: true,
   },
   'empathy-map': {
@@ -278,16 +262,6 @@ const TEMPLATES = {
 
 /* ── Per-template form definitions ── */
 const FORMS = {
-  'pmo-sop': {
-    fields: [
-      { id: 'org_name',      label: 'Organisation Name',      type: 'text', required: true,  placeholder: 'e.g. ESDS Software Solution Limited' },
-      { id: 'pmo_lead',      label: 'PMO Lead Name',          type: 'text', required: true,  placeholder: 'e.g. Priya Sharma' },
-      { id: 'exec_sponsor',  label: 'Executive Sponsor / MD', type: 'text', required: true,  placeholder: 'e.g. Piyush Somani' },
-      { id: 'board_chair',   label: 'Board Chair',            type: 'text', required: true,  placeholder: 'e.g. Rajesh Gupta' },
-      { id: 'head_delivery', label: 'Head of Delivery',       type: 'text', required: true,  placeholder: 'e.g. Ankit Joshi' },
-      { id: 'signoff_date',  label: 'Sign-off Date',          type: 'date', required: false, placeholder: '' },
-    ],
-  },
   'risk-register': {
     fields: [
       { id: 'project_name',       label: 'Project Name',         type: 'text',     required: true,  placeholder: 'e.g. SmartCity Phase 2 — Nagpur' },
@@ -635,13 +609,13 @@ function scrollToTemplate(key) {
 ════════════════════════════════════════════════════════ */
 function showUpgradeModal(reason) {
   const msg = {
-    'pro-doc': 'This template is for Pro users. Upgrade to unlock all 5 AI-filled PM templates.',
-    'sidebar': 'Unlock all 5 AI-filled PM templates with unlimited generations.',
+    'pro-doc': 'This template is for Pro users. Upgrade to unlock all 4 AI-filled PM templates.',
+    'sidebar': 'Unlock all 4 AI-filled PM templates with unlimited generations.',
     'limit':   'Monthly generation limit reached (5/month on Free plan). Upgrade to Pro for unlimited.',
-    'usage':   'Upgrade to Pro for unlimited AI generations and all 5 PM templates.',
+    'usage':   'Upgrade to Pro for unlimited AI generations and all 4 PM templates.',
   };
   document.getElementById('upgrade-reason').textContent =
-    msg[reason] || 'Unlock all 5 AI-filled PM templates.';
+    msg[reason] || 'Unlock all 4 AI-filled PM templates.';
   document.getElementById('upgrade-modal').style.display = 'flex';
 }
 function closeUpgradeModal() { document.getElementById('upgrade-modal').style.display = 'none'; }

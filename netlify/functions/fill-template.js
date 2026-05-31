@@ -11,26 +11,7 @@ const SUPABASE_ANON = 'sb_publishable_dhQwFgU9-gRY57rksdUfpw_V0fsRv2o';
 ───────────────────────────────────────────────────────────────────────────── */
 const TEMPLATES = {
 
-  /* ── 1. PMO SOP — FREE ──────────────────────────────────────────────────── */
-  'pmo-sop': {
-    name: 'PMO SOP — Hybrid Governance Framework',
-    file: 'PMO-SOP-006-V1_0-Hybrid_Governance_Framework__1_.docx',
-    ext:  'docx',
-    pro:  false,
-    prompt: (f) => `You are filling in the SOP Sign-off table of an ESDS PMO SOP document.
-The user has provided the following details:
-- Organisation: ${f.org_name}
-- PMO Lead: ${f.pmo_lead}
-- Executive Sponsor / MD: ${f.exec_sponsor}
-- Board Chair: ${f.board_chair}
-- Head of Delivery: ${f.head_delivery}
-- Sign-off Date: ${f.signoff_date || new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
-
-Return ONLY a valid JSON object with exactly these keys. No markdown, no extra text.
-{"pmo_lead":"<full name>","exec_sponsor":"<full name>","board_chair":"<full name>","head_delivery":"<full name>","signoff_date":"<date e.g. 15 Jun 2026>"}`,
-  },
-
-  /* ── 2. Risk Register — FREE (xlsx, exceljs) ─────────────────────────────── */
+  /* ── 1. Risk Register — FREE (xlsx, exceljs) ─────────────────────────────── */
   'risk-register': {
     name: 'Risk Register — Simplified',
     file: 'Risk_Register_Simplified_Blank__1_.xlsx',
@@ -63,12 +44,12 @@ Return ONLY a valid JSON array with exactly 10 objects. No markdown, no extra te
 ]`,
   },
 
-  /* ── 3. Project Charter — PRO ────────────────────────────────────────────── */
+  /* ── 2. Project Charter — FREE ───────────────────────────────────────────── */
   'charter': {
     name: 'Project Charter Template',
     file: 'Project_Charter_Template.docx',
     ext:  'docx',
-    pro:  true,
+    pro:  false,
     prompt: (f) => `You are filling in a Project Charter document for a real professional engagement.
 
 User inputs:
@@ -112,7 +93,7 @@ Return ONLY a valid JSON object with exactly these keys. No markdown fences, no 
 }`,
   },
 
-  /* ── 4. Client Empathy Map — PRO ─────────────────────────────────────────── */
+  /* ── 3. Client Empathy Map — PRO ─────────────────────────────────────────── */
   'empathy-map': {
     name: 'Client Empathy Map (A3 Printable)',
     file: 'Client_Empathy_Map_A3_Printable_1.docx',
@@ -153,7 +134,7 @@ Return ONLY a valid JSON object with exactly these keys. No markdown fences, no 
 }`,
   },
 
-  /* ── 5. Stakeholder Mapping — PRO ────────────────────────────────────────── */
+  /* ── 4. Stakeholder Mapping — PRO ────────────────────────────────────────── */
   'stakeholder-mapping': {
     name: 'SmartCity Stakeholder Mapping Template',
     file: 'SmartCity_Stakeholder_Mapping_Blank_Template.docx',
